@@ -11,7 +11,7 @@ NCD Clinic Dashboard — a single-page React/TypeScript dashboard (for the HOSxP
 - `docs/BMS-SESSION-FOR-DEV.md` — Complete BMS Session API specification (v2.0): session flow, `/api/sql` endpoint, field type codes, database compatibility, HOSxP table reference, example queries
 - `docs/UI-TEMPLATE.md` — UX/UI template (tokens, components, charts, Thai copy rules) — the authoritative source for look and behaviour
 - `CONTEXT.md` — Domain glossary (นัด, มาตามนัด, ยังไม่มา, ขาดนัด, กลุ่มสิทธิ, ปีงบประมาณ); use these terms in code and UI labels
-- `docs/adr/` — Architecture decisions (DM/HT by clinic type, attendance by ovst visit)
+- `docs/adr/` — Architecture decisions (DM/HT by clinic type, attendance by ovst visit, colour-blind-safe palette)
 - `.specify/memory/constitution.md` — Project constitution (v1.0.0): 9 mandatory development principles — the authoritative source for all development standards
 
 ## Architecture

@@ -1,7 +1,8 @@
 // =============================================================================
 // Category colours and icons — one category, one colour, everywhere (UI-TEMPLATE §7.4)
 // Series colours are CVD-validated (dataviz validate_palette.js) and assigned in a
-// fixed order; there are never more than MAX_CLINIC_SERIES clinic series.
+// fixed order. Blue/orange belong to DM/HT only; clinics and rights groups never
+// use them (ADR-0003). There are never more than MAX_CLINIC_SERIES clinic series.
 // =============================================================================
 
 import type { LucideIcon } from 'lucide-react'
@@ -28,13 +29,13 @@ export const DISEASE_VISUALS: Record<DiseaseKey, Visual> = {
   ht: { icon: HeartPulse, color: 'hsl(var(--cat-2))', tile: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100', dot: 'bg-cat-2' },
 }
 
+/** Series colours for clinics and rights groups — never the DM/HT colours */
 const SERIES_COLORS = [
-  'hsl(var(--cat-1))',
-  'hsl(var(--cat-2))',
   'hsl(var(--cat-3))',
   'hsl(var(--cat-4))',
   'hsl(var(--cat-5))',
   'hsl(var(--cat-6))',
+  'hsl(var(--cat-7))',
 ] as const
 
 const OTHER_COLOR = 'hsl(220 9% 70%)'

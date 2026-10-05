@@ -179,6 +179,8 @@ Vitest + Testing Library                   — test
 
 > **สีประจำหมวด** ถ้ามีมากกว่า 3 หมวด เพิ่มจาก `violet-400`, `amber-400`, `rose-400` ตามลำดับ และเก็บไว้ในไฟล์เดียว (ดู `serviceTheme.ts` ในข้อ 7.4)
 
+> **NCD Clinic Dashboard ใช้ชุดสีอื่น:** คู่ sky/indigo ข้างบนแยกไม่ออกสำหรับผู้ที่ตาบอดสี จึงใช้ชุดสีที่ผ่าน `validate_palette.js` แทน (DM = น้ำเงิน, HT = ส้ม, คลินิกและสิทธิใช้ `--cat-3`–`--cat-7`) ดู `docs/adr/0003-colour-blind-safe-palette.md` และ `src/components/ncd/visuals.ts`
+
 ---
 
 ## 4. Typography

@@ -26,13 +26,14 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   --color-smoke: hsl(var(--smoke));
-  /* Category colours: DM, HT, then extra series (clinics, rights groups) */
+  /* Category colours: DM, HT, then series for clinics and rights groups */
   --color-cat-1: hsl(var(--cat-1));
   --color-cat-2: hsl(var(--cat-2));
   --color-cat-3: hsl(var(--cat-3));
   --color-cat-4: hsl(var(--cat-4));
   --color-cat-5: hsl(var(--cat-5));
   --color-cat-6: hsl(var(--cat-6));
+  --color-cat-7: hsl(var(--cat-7));
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -63,13 +64,15 @@
 
     --smoke: 220 12% 95%;
 
-    /* Categorical series — CVD-validated (dataviz validate_palette.js, light surface) */
-    --cat-1: 213 68% 50%;   /* blue    #2a78d6 — DM */
-    --cat-2: 17 82% 56%;    /* orange  #eb6834 — HT */
+    /* Categorical series — CVD-validated (dataviz validate_palette.js, light surface).
+       cat-1/cat-2 are reserved for DM/HT; clinics and rights groups use cat-3..cat-7 (ADR-0003) */
+    --cat-1: 213 68% 50%;   /* blue    #2a78d6 — DM only */
+    --cat-2: 17 82% 56%;    /* orange  #eb6834 — HT only */
     --cat-3: 159 73% 40%;   /* aqua    #1baf7a */
     --cat-4: 41 100% 46%;   /* yellow  #eda100 */
     --cat-5: 337 70% 70%;   /* magenta #e87ba4 */
-    --cat-6: 258 90% 66%;   /* violet  #8b5cf6 */
+    --cat-6: 120 100% 26%;  /* green   #008300 */
+    --cat-7: 249 49% 44%;   /* violet  #4a3aa7 */
   }
 }
 

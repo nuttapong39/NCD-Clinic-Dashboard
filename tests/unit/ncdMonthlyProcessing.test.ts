@@ -154,17 +154,17 @@ describe('clinicSeriesGroups', () => {
     diseaseKey: index < 4 ? ('dm' as const) : ('ht' as const),
   }))
 
-  it('MUST give every clinic its own series when there are at most six', () => {
-    const groups = clinicSeriesGroups(clinics.slice(0, 6))
-    expect(groups).toHaveLength(6)
+  it('MUST give every clinic its own series when there are at most five', () => {
+    const groups = clinicSeriesGroups(clinics.slice(0, 5))
+    expect(groups).toHaveLength(5)
     expect(groups[0]).toEqual({ key: '001', label: 'คลินิก 1', clinicCodes: ['001'], diseaseKey: 'dm' })
   })
 
-  it('MUST fold clinics beyond the fifth into one "other clinics" series when there are more than six', () => {
+  it('MUST fold clinics beyond the fourth into one "other clinics" series when there are more than five', () => {
     const groups = clinicSeriesGroups(clinics)
-    expect(groups).toHaveLength(6)
-    expect(groups.slice(0, 5).map((group) => group.key)).toEqual(['001', '002', '003', '004', '005'])
-    expect(groups[5]).toEqual({ key: 'other', label: 'คลินิกอื่น ๆ', clinicCodes: ['006', '007', '008'], diseaseKey: null })
+    expect(groups).toHaveLength(5)
+    expect(groups.slice(0, 4).map((group) => group.key)).toEqual(['001', '002', '003', '004'])
+    expect(groups[4]).toEqual({ key: 'other', label: 'คลินิกอื่น ๆ', clinicCodes: ['005', '006', '007', '008'], diseaseKey: null })
   })
 })
 
@@ -206,7 +206,7 @@ describe('buildClinicStackSeries', () => {
       clinicRow({ month: '2025-10', clinicCode: String(index + 1).padStart(3, '0'), appointments: index + 1 }),
     )
     const series = buildClinicStackSeries(rows, 2569, TODAY, clinicSeriesGroups(listClinics(rows)))
-    expect(series[0]).toMatchObject({ '005': 5, other: 13, total: 28 })
+    expect(series[0]).toMatchObject({ '004': 4, other: 18, total: 28 })
   })
 })
 

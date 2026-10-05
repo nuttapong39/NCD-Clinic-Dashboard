@@ -155,11 +155,11 @@ function inFiscalYear(fiscalYear: number): (row: { month: string }) => boolean {
   return (row) => months.has(row.month)
 }
 
-/** Most distinct categorical colours a chart may use; further clinics fold into "other". */
-export const MAX_CLINIC_SERIES = 6
+/** Clinic colours available after reserving blue/orange for DM/HT (ADR-0003); further clinics fold into "other". */
+export const MAX_CLINIC_SERIES = 5
 export const OTHER_CLINICS_KEY = 'other'
 
-/** One chart series per clinic, or the first five plus "คลินิกอื่น ๆ" when there are more than six. */
+/** One chart series per clinic, or the first four plus "คลินิกอื่น ๆ" when there are more than five. */
 export function clinicSeriesGroups(clinics: readonly ClinicInfo[], maxSeries = MAX_CLINIC_SERIES): ClinicSeriesGroup[] {
   const own = (clinic: ClinicInfo): ClinicSeriesGroup => ({
     key: clinic.clinicCode,
