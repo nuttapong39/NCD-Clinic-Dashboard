@@ -90,11 +90,19 @@ export interface SqlApiResponse {
   record_count?: number;
 }
 
+/** Bound parameter for `:name` placeholders in SQL sent to the API */
+export interface SqlParam {
+  value: string;
+  value_type: string;
+}
+
+export type SqlParams = Record<string, SqlParam>;
+
 /** Shape sent to the SQL query API */
 export interface SqlApiRequest {
   sql: string;
   app: string;
-  params?: Record<string, { value: string; value_type: string }>;
+  params?: SqlParams;
 }
 
 // ---------------------------------------------------------------------------

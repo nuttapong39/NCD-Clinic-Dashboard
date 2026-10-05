@@ -9,7 +9,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { beforeAll, afterAll, afterEach, describe, it, expect } from 'vitest'
 
-import { executeSqlViaApi } from '@/services/bmsSession'
+import { executeSqlViaApi, executeSqlViaApiQueued } from '@/services/bmsSession'
 import type { ConnectionConfig, SqlApiResponse } from '@/types'
 
 // ---------------------------------------------------------------------------
@@ -134,6 +134,45 @@ describe('T016 - SQL Query Execution Contract (/api/sql)', () => {
 
       expect(capturedBody.sql).toBe('SELECT COUNT(*) as total FROM ovst')
       expect(capturedBody.app).toBe('BMS.Dashboard.NCD')
+      expect(capturedBody).not.toHaveProperty('params')
+    })
+
+    it('MUST send bound parameters in the params field when provided', async () => {
+      let capturedBody: Record<string, unknown> = {}
+
+      server.use(
+        http.post('https://test.hosxp.net/api/sql', async ({ request }) => {
+          capturedBody = (await request.json()) as Record<string, unknown>
+          return HttpResponse.json(successSqlResponse)
+        }),
+      )
+
+      const params = { start_date: { value: '2024-10-01', value_type: 'date' } }
+      await executeSqlViaApi('SELECT COUNT(*) FROM oapp WHERE nextdate >= :start_date', config, params)
+
+      expect(capturedBody.params).toEqual(params)
+    })
+
+    it('MUST NOT share a queued result between identical SQL with different params', async () => {
+      const receivedStartDates: string[] = []
+
+      server.use(
+        http.post('https://test.hosxp.net/api/sql', async ({ request }) => {
+          const body = (await request.json()) as { params: { start_date: { value: string } } }
+          receivedStartDates.push(body.params.start_date.value)
+          return HttpResponse.json({ ...successSqlResponse, data: [{ start: body.params.start_date.value }] })
+        }),
+      )
+
+      const sql = 'SELECT :start_date AS start'
+      const [first, second] = await Promise.all([
+        executeSqlViaApiQueued(sql, config, { start_date: { value: '2023-10-01', value_type: 'date' } }),
+        executeSqlViaApiQueued(sql, config, { start_date: { value: '2024-10-01', value_type: 'date' } }),
+      ])
+
+      expect(receivedStartDates.sort()).toEqual(['2023-10-01', '2024-10-01'])
+      expect(first.data?.[0]).toEqual({ start: '2023-10-01' })
+      expect(second.data?.[0]).toEqual({ start: '2024-10-01' })
     })
 
     it('MUST send Content-Type: application/json header', async () => {

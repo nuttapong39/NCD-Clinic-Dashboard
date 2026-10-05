@@ -5,6 +5,7 @@ import type {
   DatabaseType,
   ConnectionConfig,
   SqlApiResponse,
+  SqlParams,
 } from '@/types'
 import {
   retrieveBmsSession,
@@ -29,7 +30,7 @@ interface UseBmsSessionResult {
   disconnectSession: () => void
   setDisconnected: () => void
   refreshSession: () => Promise<boolean>
-  executeQuery: (sql: string) => Promise<SqlApiResponse>
+  executeQuery: (sql: string, params?: SqlParams) => Promise<SqlApiResponse>
 }
 
 export function useBmsSession(): UseBmsSessionResult {
@@ -102,13 +103,13 @@ export function useBmsSession(): UseBmsSessionResult {
     return connectSession(lastSessionId)
   }, [lastSessionId, connectSession])
 
-  const executeQuery = useCallback(async (sql: string): Promise<SqlApiResponse> => {
+  const executeQuery = useCallback(async (sql: string, params?: SqlParams): Promise<SqlApiResponse> => {
     if (!connectionConfig) {
       throw new Error('Not connected. Please connect with a valid session ID first.')
     }
 
     try {
-      const result = await executeSqlViaApiQueued(sql, connectionConfig)
+      const result = await executeSqlViaApiQueued(sql, connectionConfig, params)
 
       if (result.MessageCode === 500 || result.MessageCode === 501) {
         setSessionState('expired')

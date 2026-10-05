@@ -259,9 +259,31 @@ describe('useBmsSession', () => {
 
     expect(executeSqlViaApiQueued).toHaveBeenCalledWith(
       'SELECT COUNT(*) as total FROM patient',
-      expect.objectContaining({ apiUrl: 'https://bms.hospital.com' })
+      expect.objectContaining({ apiUrl: 'https://bms.hospital.com' }),
+      undefined
     )
     expect(queryResult).toEqual(sqlResponse)
+  })
+
+  it('MUST forward bound parameters to executeSqlViaApiQueued', async () => {
+    const { result } = renderHook(() => useBmsSession())
+
+    await act(async () => {
+      await result.current.connectSession('test-session-id')
+    })
+
+    vi.mocked(executeSqlViaApiQueued).mockResolvedValue(makeSqlApiResponse())
+    const params = { start_date: { value: '2024-10-01', value_type: 'date' } }
+
+    await act(async () => {
+      await result.current.executeQuery('SELECT :start_date', params)
+    })
+
+    expect(executeSqlViaApiQueued).toHaveBeenCalledWith(
+      'SELECT :start_date',
+      expect.objectContaining({ apiUrl: 'https://bms.hospital.com' }),
+      params
+    )
   })
 
   it('MUST throw error from executeQuery when not connected', async () => {

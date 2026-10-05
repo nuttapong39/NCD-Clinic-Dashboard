@@ -8,6 +8,7 @@ import type {
   ConnectionConfig,
   DatabaseType,
   SqlApiResponse,
+  SqlParams,
   SystemInfo,
   UserInfo,
 } from '@/types';
@@ -176,6 +177,7 @@ export function extractSystemInfo(response: BmsSessionResponse): SystemInfo {
 export async function executeSqlViaApi(
   sql: string,
   config: ConnectionConfig,
+  params?: SqlParams,
 ): Promise<SqlApiResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
@@ -187,7 +189,7 @@ export async function executeSqlViaApi(
         Authorization: `Bearer ${config.bearerToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ sql, app: config.appIdentifier }),
+      body: JSON.stringify({ sql, app: config.appIdentifier, ...(params && { params }) }),
       signal: controller.signal,
     });
 
@@ -287,10 +289,10 @@ export async function detectDatabaseType(config: ConnectionConfig): Promise<Data
 /**
  * Generate a unique request ID for deduplication
  */
-function generateRequestId(sql: string, config: ConnectionConfig): string {
+function generateRequestId(sql: string, config: ConnectionConfig, params?: SqlParams): string {
   // Normalize SQL by removing extra whitespace for better deduplication
   const normalizedSql = sql.trim().replace(/\s+/g, ' ').toLowerCase();
-  const content = `${config.apiUrl}:${config.bearerToken.slice(-8)}:${normalizedSql}`;
+  const content = `${config.apiUrl}:${config.bearerToken.slice(-8)}:${normalizedSql}:${JSON.stringify(params ?? null)}`;
 
   // Simple hash
   let hash = 0;
@@ -315,10 +317,11 @@ function generateRequestId(sql: string, config: ConnectionConfig): string {
 export async function executeSqlViaApiQueued(
   sql: string,
   config: ConnectionConfig,
+  params?: SqlParams,
 ): Promise<SqlApiResponse> {
-  const requestId = generateRequestId(sql, config);
+  const requestId = generateRequestId(sql, config, params);
 
-  return apiQueue.enqueue(requestId, () => executeSqlViaApi(sql, config));
+  return apiQueue.enqueue(requestId, () => executeSqlViaApi(sql, config, params));
 }
 
 /**
