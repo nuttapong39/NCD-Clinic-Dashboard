@@ -2,7 +2,7 @@
 // NCD Clinic Dashboard — Hero → Toolbar → วันนี้ → ปีงบประมาณ → หมายเหตุ
 // =============================================================================
 
-import { useCallback, useMemo, useState } from 'react'
+import { Suspense, lazy, useCallback, useMemo, useState } from 'react'
 import { CalendarCheck, CalendarRange } from 'lucide-react'
 import { useBmsSessionContext } from '@/contexts/BmsSessionContext'
 import { useNcdDashboard } from '@/hooks/useNcdDashboard'
@@ -10,8 +10,6 @@ import { NcdHero } from '@/components/ncd/NcdHero'
 import { DashboardToolbar } from '@/components/ncd/DashboardToolbar'
 import { TodaySummaryCards } from '@/components/ncd/TodaySummaryCards'
 import { NotArrivedTable } from '@/components/ncd/NotArrivedTable'
-import { YearlyOverview } from '@/components/ncd/YearlyOverview'
-import { TrendDetailModal } from '@/components/ncd/TrendDetailModal'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/StateViews'
 import { MONTHLY_CSV_COLUMNS, clinicSeriesGroups, listClinics, monthlyCsvRows } from '@/services/ncdMonthlyProcessing'
@@ -19,6 +17,10 @@ import { downloadCsv, toCsv } from '@/utils/csv'
 import { fiscalMonths } from '@/utils/fiscalYear'
 import { formatThaiDate, formatTime } from '@/utils/formatters'
 import type { DetailSubject } from '@/types/ncd'
+
+// Recharts-heavy parts load separately so today's cards and patient list appear first
+const YearlyOverview = lazy(() => import('@/components/ncd/YearlyOverview').then((module) => ({ default: module.YearlyOverview })))
+const TrendDetailModal = lazy(() => import('@/components/ncd/TrendDetailModal').then((module) => ({ default: module.TrendDetailModal })))
 
 export default function NcdDashboard() {
   const { session } = useBmsSessionContext()
@@ -113,14 +115,16 @@ export default function NcdDashboard() {
           />
         </SectionCard>
       ) : (
-        <YearlyOverview
-          clinicRows={yearly.clinicRows}
-          rightsRows={yearly.rightsRows}
-          groups={groups}
-          fiscalYear={fiscalYear}
-          asOf={asOf}
-          onOpenDetail={setDetail}
-        />
+        <Suspense fallback={<LoadingState message="กำลังเตรียมกราฟ…" />}>
+          <YearlyOverview
+            clinicRows={yearly.clinicRows}
+            rightsRows={yearly.rightsRows}
+            groups={groups}
+            fiscalYear={fiscalYear}
+            asOf={asOf}
+            onOpenDetail={setDetail}
+          />
+        </Suspense>
       )}
 
       <p className="pt-2 text-center text-xs text-muted-foreground">
@@ -128,15 +132,19 @@ export default function NcdDashboard() {
         มีรายชื่อผู้ป่วยเพื่อการติดตามนัดเท่านั้น
       </p>
 
-      <TrendDetailModal
-        subject={detail}
-        onClose={() => setDetail(null)}
-        clinicRows={yearly.clinicRows}
-        rightsRows={yearly.rightsRows}
-        groups={groups}
-        fiscalYear={fiscalYear}
-        asOf={asOf}
-      />
+      {detail && (
+        <Suspense fallback={null}>
+          <TrendDetailModal
+            subject={detail}
+            onClose={() => setDetail(null)}
+            clinicRows={yearly.clinicRows}
+            rightsRows={yearly.rightsRows}
+            groups={groups}
+            fiscalYear={fiscalYear}
+            asOf={asOf}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }
