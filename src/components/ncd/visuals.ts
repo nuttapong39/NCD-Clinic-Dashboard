@@ -1,9 +1,12 @@
 // =============================================================================
 // Category colours and icons — one category, one colour, everywhere (UI-TEMPLATE §7.4)
+// Series colours are CVD-validated (dataviz validate_palette.js) and assigned in a
+// fixed order; there are never more than MAX_CLINIC_SERIES clinic series.
 // =============================================================================
 
 import type { LucideIcon } from 'lucide-react'
-import { Activity, Droplet, HeartPulse, Hospital } from 'lucide-react'
+import { Activity, Droplet, HeartPulse } from 'lucide-react'
+import { OTHER_CLINICS_KEY } from '@/services/ncdMonthlyProcessing'
 import type { DiseaseKey, RightsGroupKey } from '@/types/ncd'
 
 export interface Visual {
@@ -21,30 +24,32 @@ export const TOTAL_VISUAL: Visual = {
 }
 
 export const DISEASE_VISUALS: Record<DiseaseKey, Visual> = {
-  dm: { icon: Droplet, color: 'hsl(var(--cat-1))', tile: 'bg-sky-50 text-sky-600 ring-1 ring-sky-100', dot: 'bg-cat-1' },
-  ht: { icon: HeartPulse, color: 'hsl(var(--cat-2))', tile: 'bg-indigo-50 text-indigo-500 ring-1 ring-indigo-100', dot: 'bg-cat-2' },
+  dm: { icon: Droplet, color: 'hsl(var(--cat-1))', tile: 'bg-blue-50 text-blue-600 ring-1 ring-blue-100', dot: 'bg-cat-1' },
+  ht: { icon: HeartPulse, color: 'hsl(var(--cat-2))', tile: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100', dot: 'bg-cat-2' },
 }
 
-/** Series palette for clinics (cycled by display order). */
-const SERIES_PALETTE: readonly Omit<Visual, 'icon'>[] = [
-  { color: 'hsl(var(--cat-1))', tile: 'bg-sky-50 text-sky-600 ring-1 ring-sky-100', dot: 'bg-cat-1' },
-  { color: 'hsl(var(--cat-2))', tile: 'bg-indigo-50 text-indigo-500 ring-1 ring-indigo-100', dot: 'bg-cat-2' },
-  { color: 'hsl(var(--cat-3))', tile: 'bg-teal-50 text-teal-600 ring-1 ring-teal-100', dot: 'bg-cat-3' },
-  { color: 'hsl(var(--cat-4))', tile: 'bg-violet-50 text-violet-500 ring-1 ring-violet-100', dot: 'bg-cat-4' },
-  { color: 'hsl(var(--cat-5))', tile: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100', dot: 'bg-cat-5' },
-  { color: 'hsl(var(--cat-6))', tile: 'bg-rose-50 text-rose-500 ring-1 ring-rose-100', dot: 'bg-cat-6' },
-]
+const SERIES_COLORS = [
+  'hsl(var(--cat-1))',
+  'hsl(var(--cat-2))',
+  'hsl(var(--cat-3))',
+  'hsl(var(--cat-4))',
+  'hsl(var(--cat-5))',
+  'hsl(var(--cat-6))',
+] as const
 
-export function clinicVisual(index: number): Visual {
-  return { icon: Hospital, ...SERIES_PALETTE[index % SERIES_PALETTE.length] }
+const OTHER_COLOR = 'hsl(220 9% 70%)'
+
+/** Colour of a clinic series by its fixed display position; "other clinics" is neutral grey. */
+export function clinicSeriesColor(index: number, key: string): string {
+  return key === OTHER_CLINICS_KEY ? OTHER_COLOR : SERIES_COLORS[index] ?? OTHER_COLOR
 }
 
 export const RIGHTS_COLORS: Record<RightsGroupKey, string> = {
-  uc: 'hsl(var(--cat-1))',
-  ofc: 'hsl(var(--cat-2))',
-  sss: 'hsl(var(--cat-3))',
-  lgo: 'hsl(var(--cat-4))',
-  other: 'hsl(220 9% 70%)',
+  uc: SERIES_COLORS[0],
+  ofc: SERIES_COLORS[1],
+  sss: SERIES_COLORS[2],
+  lgo: SERIES_COLORS[3],
+  other: OTHER_COLOR,
 }
 
 export const PREVIOUS_YEAR_COLOR = 'hsl(var(--muted-foreground))'

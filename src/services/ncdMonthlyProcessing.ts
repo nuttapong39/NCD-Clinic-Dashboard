@@ -16,6 +16,7 @@ import type {
   AppointmentCounts,
   AppointmentPoint,
   ClinicInfo,
+  ClinicSeriesGroup,
   ClinicShare,
   DetailSubject,
   MonthPoint,
@@ -160,17 +161,48 @@ function inFiscalYear(fiscalYear: number): (row: { month: string }) => boolean {
   return (row) => months.has(row.month)
 }
 
-/** Each clinic's share of the fiscal year's appointments (clinics with none are left out). */
-export function clinicShare(rows: readonly MonthlyClinicRow[], fiscalYear: number): ClinicShare[] {
+/** Most distinct categorical colours a chart may use; further clinics fold into "other". */
+export const MAX_CLINIC_SERIES = 6
+export const OTHER_CLINICS_KEY = 'other'
+
+/** One chart series per clinic, or the first five plus "คลินิกอื่น ๆ" when there are more than six. */
+export function clinicSeriesGroups(clinics: readonly ClinicInfo[], maxSeries = MAX_CLINIC_SERIES): ClinicSeriesGroup[] {
+  const own = (clinic: ClinicInfo): ClinicSeriesGroup => ({
+    key: clinic.clinicCode,
+    label: clinic.clinicName,
+    clinicCodes: [clinic.clinicCode],
+    diseaseKey: clinic.diseaseKey,
+  })
+  if (clinics.length <= maxSeries) return clinics.map(own)
+  const shown = clinics.slice(0, maxSeries - 1)
+  const folded = clinics.slice(maxSeries - 1)
+  return [
+    ...shown.map(own),
+    { key: OTHER_CLINICS_KEY, label: 'คลินิกอื่น ๆ', clinicCodes: folded.map((clinic) => clinic.clinicCode), diseaseKey: null },
+  ]
+}
+
+function groupKeyOf(groups: readonly ClinicSeriesGroup[]): (row: MonthlyClinicRow) => string {
+  const keyByClinic = new Map(groups.flatMap((group) => group.clinicCodes.map((code) => [code, group.key] as const)))
+  return (row) => keyByClinic.get(row.clinicCode) ?? OTHER_CLINICS_KEY
+}
+
+/** Each series' share of the fiscal year's appointments (series with none are left out). */
+export function clinicShare(
+  rows: readonly MonthlyClinicRow[],
+  fiscalYear: number,
+  groups: readonly ClinicSeriesGroup[],
+): ClinicShare[] {
   const yearRows = rows.filter(inFiscalYear(fiscalYear))
   const total = yearRows.reduce((sum, row) => sum + row.appointments, 0)
-  return listClinics(yearRows)
-    .map((clinic) => ({
-      ...clinic,
-      appointments: yearRows.filter((row) => row.clinicCode === clinic.clinicCode).reduce((sum, row) => sum + row.appointments, 0),
+  const keyOf = groupKeyOf(groups)
+  return groups
+    .map((group) => ({
+      ...group,
+      appointments: yearRows.filter((row) => keyOf(row) === group.key).reduce((sum, row) => sum + row.appointments, 0),
     }))
-    .filter((clinic) => clinic.appointments > 0)
-    .map((clinic) => ({ ...clinic, percentage: (clinic.appointments / total) * 100 }))
+    .filter((group) => group.appointments > 0)
+    .map((group) => ({ ...group, percentage: (group.appointments / total) * 100 }))
 }
 
 function previousMonth(month: string): string {
@@ -201,14 +233,14 @@ function stackSeries<Row extends { month: string }>(
   })
 }
 
-/** Stacked appointments per clinic with last year's monthly total. */
+/** Stacked appointments per clinic series with last year's monthly total. */
 export function buildClinicStackSeries(
   rows: readonly MonthlyClinicRow[],
   fiscalYear: number,
   today: Date,
-  clinics: readonly ClinicInfo[],
+  groups: readonly ClinicSeriesGroup[],
 ): StackPoint[] {
-  return stackSeries(rows, fiscalYear, today, clinics.map((clinic) => clinic.clinicCode), (row) => row.clinicCode, (row) => row.appointments)
+  return stackSeries(rows, fiscalYear, today, groups.map((group) => group.key), groupKeyOf(groups), (row) => row.appointments)
 }
 
 /** Stacked attended appointments per rights group with last year's monthly total. */

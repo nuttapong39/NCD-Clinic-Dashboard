@@ -74,7 +74,15 @@ export interface ClinicInfo {
   diseaseKey: DiseaseKey
 }
 
-export interface ClinicShare extends ClinicInfo {
+/** A chart series: one clinic, or several folded into "คลินิกอื่น ๆ" (diseaseKey null) */
+export interface ClinicSeriesGroup {
+  key: string
+  label: string
+  clinicCodes: string[]
+  diseaseKey: DiseaseKey | null
+}
+
+export interface ClinicShare extends ClinicSeriesGroup {
   appointments: number
   percentage: number
 }

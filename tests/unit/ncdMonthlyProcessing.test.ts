@@ -8,6 +8,7 @@ import {
   percentChange,
   listClinics,
   clinicShare,
+  clinicSeriesGroups,
   buildClinicStackSeries,
   buildRightsSeries,
   detailSeries,
@@ -144,38 +145,66 @@ describe('listClinics', () => {
   })
 })
 
+describe('clinicSeriesGroups', () => {
+  const clinics = Array.from({ length: 8 }, (_, index) => ({
+    clinicCode: String(index + 1).padStart(3, '0'),
+    clinicName: `คลินิก ${index + 1}`,
+    diseaseKey: index < 4 ? ('dm' as const) : ('ht' as const),
+  }))
+
+  it('MUST give every clinic its own series when there are at most six', () => {
+    const groups = clinicSeriesGroups(clinics.slice(0, 6))
+    expect(groups).toHaveLength(6)
+    expect(groups[0]).toEqual({ key: '001', label: 'คลินิก 1', clinicCodes: ['001'], diseaseKey: 'dm' })
+  })
+
+  it('MUST fold clinics beyond the fifth into one "other clinics" series when there are more than six', () => {
+    const groups = clinicSeriesGroups(clinics)
+    expect(groups).toHaveLength(6)
+    expect(groups.slice(0, 5).map((group) => group.key)).toEqual(['001', '002', '003', '004', '005'])
+    expect(groups[5]).toEqual({ key: 'other', label: 'คลินิกอื่น ๆ', clinicCodes: ['006', '007', '008'], diseaseKey: null })
+  })
+})
+
 describe('clinicShare', () => {
-  it('MUST give each clinic its share of the selected fiscal year appointments only', () => {
-    const shares = clinicShare(
-      [
-        clinicRow({ month: '2025-10', clinicCode: '010', appointments: 30 }),
-        clinicRow({ month: '2026-03', clinicCode: '015', diseaseKey: 'ht', clinicName: 'ความดัน', appointments: 10 }),
-        clinicRow({ month: '2025-09', clinicCode: '015', diseaseKey: 'ht', clinicName: 'ความดัน', appointments: 500 }),
-      ],
-      2569,
-    )
+  it('MUST give each series its share of the selected fiscal year appointments only', () => {
+    const rows = [
+      clinicRow({ month: '2025-10', clinicCode: '010', appointments: 30 }),
+      clinicRow({ month: '2026-03', clinicCode: '015', diseaseKey: 'ht', clinicName: 'ความดัน', appointments: 10 }),
+      clinicRow({ month: '2025-09', clinicCode: '015', diseaseKey: 'ht', clinicName: 'ความดัน', appointments: 500 }),
+    ]
+    const shares = clinicShare(rows, 2569, clinicSeriesGroups(listClinics(rows)))
     expect(shares).toEqual([
-      { clinicCode: '010', clinicName: 'คลินิกเบาหวาน', diseaseKey: 'dm', appointments: 30, percentage: 75 },
-      { clinicCode: '015', clinicName: 'ความดัน', diseaseKey: 'ht', appointments: 10, percentage: 25 },
+      { key: '010', label: 'คลินิกเบาหวาน', clinicCodes: ['010'], diseaseKey: 'dm', appointments: 30, percentage: 75 },
+      { key: '015', label: 'ความดัน', clinicCodes: ['015'], diseaseKey: 'ht', appointments: 10, percentage: 25 },
     ])
   })
 
-  it('MUST leave out clinics without appointments in the fiscal year', () => {
-    expect(clinicShare([clinicRow({ month: '2025-10', appointments: 0 })], 2569)).toEqual([])
+  it('MUST leave out series without appointments in the fiscal year', () => {
+    const rows = [clinicRow({ month: '2025-10', appointments: 0 })]
+    expect(clinicShare(rows, 2569, clinicSeriesGroups(listClinics(rows)))).toEqual([])
   })
 })
 
 describe('buildClinicStackSeries', () => {
-  it('MUST put each clinic appointment count, the total and the same month last year on every point', () => {
+  it('MUST put each series appointment count, the total and the same month last year on every point', () => {
     const rows = [
       clinicRow({ month: '2025-10', clinicCode: '010', appointments: 30 }),
       clinicRow({ month: '2025-10', clinicCode: '015', diseaseKey: 'ht', appointments: 10 }),
       clinicRow({ month: '2024-10', clinicCode: '010', appointments: 32 }),
     ]
-    const series = buildClinicStackSeries(rows, 2569, TODAY, listClinics(rows))
+    const series = buildClinicStackSeries(rows, 2569, TODAY, clinicSeriesGroups(listClinics(rows)))
     expect(series).toHaveLength(12)
     expect(series[0]).toMatchObject({ month: '2025-10', isFuture: false, total: 40, previousTotal: 32, '010': 30, '015': 10 })
     expect(series[1]).toMatchObject({ month: '2025-11', total: 0, previousTotal: 0, '010': 0, '015': 0 })
+  })
+
+  it('MUST sum folded clinics into the "other" series', () => {
+    const rows = Array.from({ length: 7 }, (_, index) =>
+      clinicRow({ month: '2025-10', clinicCode: String(index + 1).padStart(3, '0'), appointments: index + 1 }),
+    )
+    const series = buildClinicStackSeries(rows, 2569, TODAY, clinicSeriesGroups(listClinics(rows)))
+    expect(series[0]).toMatchObject({ '005': 5, other: 13, total: 28 })
   })
 })
 
