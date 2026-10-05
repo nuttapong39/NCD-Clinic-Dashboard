@@ -3,7 +3,7 @@ import { Bar, CartesianGrid, ComposedChart, Line, ReferenceArea, ResponsiveConta
 import type { TooltipContentProps } from 'recharts'
 import type { StackPoint } from '@/services/ncdMonthlyProcessing'
 import { ChartLegend, ChartTooltipCard } from '@/components/ncd/chartParts'
-import { FUTURE_AREA_FILL, GRID_PROPS, PREVIOUS_LINE_PROPS, X_AXIS_PROPS, Y_AXIS_PROPS, futureRange } from '@/components/ncd/chartConfig'
+import { FUTURE_AREA_FILL, GRID_PROPS, PREVIOUS_LINE_PROPS, X_AXIS_PROPS, Y_AXIS_PROPS, futureRange, hasAnyValue } from '@/components/ncd/chartConfig'
 import { PREVIOUS_YEAR_COLOR } from '@/components/ncd/visuals'
 
 export interface StackSeries {
@@ -35,6 +35,7 @@ export const StackedTrendChart = memo(function StackedTrendChart({
 }: StackedTrendChartProps) {
   const future = futureRange(points)
   const previousLabel = `ปีงบ ${fiscalYear - 1}`
+  const showPrevious = hasAnyValue(points, 'previousTotal')
 
   const renderTooltip = ({ active, label }: TooltipContentProps) => {
     const point = points.find((candidate) => candidate.label === label)
@@ -45,7 +46,7 @@ export const StackedTrendChart = memo(function StackedTrendChart({
         rows={[
           ...series.map((item) => ({ label: item.label, value: Number(point[item.key] ?? 0), color: item.color })),
           { label: 'รวม', value: point.total, emphasis: true },
-          { label: previousLabel, value: point.previousTotal, color: PREVIOUS_YEAR_COLOR, dashed: true },
+          ...(showPrevious ? [{ label: previousLabel, value: point.previousTotal, color: PREVIOUS_YEAR_COLOR, dashed: true }] : []),
         ]}
         footer={point.isFuture ? futureNote : undefined}
       />
@@ -78,14 +79,14 @@ export const StackedTrendChart = memo(function StackedTrendChart({
                 isAnimationActive={false}
               />
             ))}
-            <Line dataKey="previousTotal" name={previousLabel} stroke={PREVIOUS_YEAR_COLOR} {...PREVIOUS_LINE_PROPS} />
+            {showPrevious && <Line dataKey="previousTotal" name={previousLabel} stroke={PREVIOUS_YEAR_COLOR} {...PREVIOUS_LINE_PROPS} />}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
       <ChartLegend
         items={[
           ...series.map((item) => ({ key: item.key, label: item.label, color: item.color })),
-          { key: 'previous', label: `${measure}รวม${previousLabel}`, color: PREVIOUS_YEAR_COLOR, kind: 'dashed' as const },
+          ...(showPrevious ? [{ key: 'previous', label: `${measure}รวม${previousLabel}`, color: PREVIOUS_YEAR_COLOR, kind: 'dashed' as const }] : []),
           ...(future ? [{ key: 'future', label: 'เดือนที่ยังไม่ถึง', color: FUTURE_AREA_FILL, kind: 'area' as const }] : []),
         ]}
       />

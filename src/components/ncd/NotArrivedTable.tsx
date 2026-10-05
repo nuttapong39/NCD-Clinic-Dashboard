@@ -110,8 +110,8 @@ export function NotArrivedTable({ patients, clinics, limitReached, selectedClini
             <tbody>
               {visible.map((patient) => (
                 <tr key={patient.hn} className="hover:bg-accent/40">
-                  <td className="border-b border-border/60 px-3 py-2 tabular-nums">{formatTime(patient.appointmentTime)}</td>
-                  <td className="border-b border-border/60 px-3 py-2 font-mono text-xs">{patient.hn}</td>
+                  <td className="whitespace-nowrap border-b border-border/60 px-3 py-2 tabular-nums">{formatTime(patient.appointmentTime)}</td>
+                  <td className="whitespace-nowrap border-b border-border/60 px-3 py-2 font-mono text-xs">{patient.hn}</td>
                   <th scope="row" className="border-b border-border/60 px-3 py-2 text-left font-medium">{patient.patientName}</th>
                   <td className="border-b border-border/60 px-3 py-2">
                     <span className="flex flex-wrap gap-1">

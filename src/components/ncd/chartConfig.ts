@@ -15,7 +15,8 @@ export const X_AXIS_PROPS = {
   tick: AXIS_TICK,
   axisLine: false,
   tickLine: false,
-  interval: 0,
+  interval: 'preserveStartEnd',
+  minTickGap: 6,
   tickMargin: 8,
 } as const
 
@@ -37,6 +38,11 @@ export const PREVIOUS_LINE_PROPS = {
   activeDot: false,
   isAnimationActive: false,
 } as const
+
+/** True when any point has a non-zero value for `key` (e.g. last year's line has data). */
+export function hasAnyValue(points: readonly Record<string, unknown>[], key: string): boolean {
+  return points.some((point) => Number(point[key] ?? 0) > 0)
+}
 
 export const FUTURE_AREA_FILL = 'hsl(var(--muted))'
 

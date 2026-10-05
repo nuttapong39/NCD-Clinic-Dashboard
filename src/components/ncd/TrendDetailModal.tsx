@@ -4,14 +4,14 @@
 
 import { useId, useMemo, useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Info, ShieldCheck } from 'lucide-react'
+import { Hospital, Info, ShieldCheck } from 'lucide-react'
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { ChangeBadge } from '@/components/ui/ChangeBadge'
 import { SegmentedToggle } from '@/components/ui/SegmentedToggle'
 import { ChartLegend, ChartTooltipCard } from '@/components/ncd/chartParts'
-import { FUTURE_AREA_FILL, GRID_PROPS, PREVIOUS_LINE_PROPS, X_AXIS_PROPS, Y_AXIS_PROPS, futureRange } from '@/components/ncd/chartConfig'
+import { FUTURE_AREA_FILL, GRID_PROPS, PREVIOUS_LINE_PROPS, X_AXIS_PROPS, Y_AXIS_PROPS, futureRange, hasAnyValue } from '@/components/ncd/chartConfig'
 import { DISEASE_VISUALS, PREVIOUS_YEAR_COLOR, RIGHTS_COLORS, clinicSeriesColor } from '@/components/ncd/visuals'
 import { MonthlyDetailTable } from '@/components/ncd/MonthlyDetailTable'
 import { diseaseOf, rightsGroupOf } from '@/services/ncdCategories'
@@ -37,6 +37,8 @@ interface SubjectDescription {
   color: string
   icon: LucideIcon
   tile: string
+  /** Icon colour when it must match a chart series rather than the tile's own text colour */
+  iconColor?: string
 }
 
 function describeSubject(subject: DetailSubject, groups: readonly ClinicSeriesGroup[]): SubjectDescription {
@@ -55,14 +57,15 @@ function describeSubject(subject: DetailSubject, groups: readonly ClinicSeriesGr
   if (subject.kind === 'clinic') {
     const index = groups.findIndex((group) => group.key === subject.key)
     const group = groups[index]
-    const visual = DISEASE_VISUALS[group?.diseaseKey ?? 'dm']
+    const color = clinicSeriesColor(Math.max(index, 0), subject.key)
     return {
       title: group?.label ?? subject.key,
       description: `คลินิกรหัส ${subject.key}${group?.diseaseKey ? ` · ${diseaseOf(group.diseaseKey).label}` : ''}`,
       method: ATTENDANCE_RULE,
-      color: clinicSeriesColor(Math.max(index, 0), subject.key),
-      icon: visual.icon,
-      tile: visual.tile,
+      color,
+      icon: Hospital,
+      tile: 'bg-muted ring-1 ring-border',
+      iconColor: color,
     }
   }
   const rights = rightsGroupOf(subject.key)
@@ -113,6 +116,9 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
     previous: series.previous[index][shownMetric],
   }))
   const future = futureRange(points)
+  // An area needs two points to draw; mark a lone month with a dot so it stays visible
+  const singlePoint = points.filter((point) => point.value !== null).length === 1
+  const showPrevious = hasAnyValue(points, 'previous')
   const metricLabel = METRIC_OPTIONS.find((option) => option.value === shownMetric)?.label ?? ''
 
   const renderTooltip = ({ active, label }: TooltipContentProps) => {
@@ -134,7 +140,7 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
     <>
       <header className="flex items-start gap-3 pr-8">
         <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${info.tile}`} aria-hidden="true">
-          <Icon className="h-5 w-5" />
+          <Icon className="h-5 w-5" style={info.iconColor ? { color: info.iconColor } : undefined} />
         </span>
         <div className="min-w-0">
           <DialogTitle>{info.title}</DialogTitle>
@@ -190,19 +196,19 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
                 </linearGradient>
               </defs>
               <CartesianGrid {...GRID_PROPS} />
-              <XAxis {...X_AXIS_PROPS} />
+              <XAxis {...X_AXIS_PROPS} padding={{ left: 12, right: 16 }} />
               <YAxis {...Y_AXIS_PROPS} />
               {future && <ReferenceArea x1={future.x1} x2={future.x2} fill={FUTURE_AREA_FILL} fillOpacity={0.6} ifOverflow="extendDomain" />}
               <Tooltip content={renderTooltip} cursor={{ stroke: 'hsl(var(--border))' }} />
-              <Area type="monotone" dataKey="value" stroke={info.color} strokeWidth={2} fill={`url(#${gradientId})`} connectNulls={false} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
-              <Line dataKey="previous" stroke={PREVIOUS_YEAR_COLOR} {...PREVIOUS_LINE_PROPS} />
+              <Area type="monotone" dataKey="value" stroke={info.color} strokeWidth={2} fill={`url(#${gradientId})`} connectNulls={false} dot={singlePoint ? { r: 4, fill: info.color, strokeWidth: 0 } : false} activeDot={{ r: 4 }} isAnimationActive={false} />
+              {showPrevious && <Line dataKey="previous" stroke={PREVIOUS_YEAR_COLOR} {...PREVIOUS_LINE_PROPS} />}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
         <ChartLegend
           items={[
             { key: 'current', label: `ปีงบ ${fiscalYear}`, color: info.color },
-            { key: 'previous', label: `ปีงบ ${fiscalYear - 1}`, color: PREVIOUS_YEAR_COLOR, kind: 'dashed' },
+            ...(showPrevious ? [{ key: 'previous', label: `ปีงบ ${fiscalYear - 1}`, color: PREVIOUS_YEAR_COLOR, kind: 'dashed' as const }] : []),
           ]}
         />
       </section>
