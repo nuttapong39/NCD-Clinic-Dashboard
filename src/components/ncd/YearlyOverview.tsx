@@ -3,10 +3,11 @@ import { BarChart3, PieChart, ShieldCheck } from 'lucide-react'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/StateViews'
 import { DiseaseCards } from '@/components/ncd/DiseaseCards'
-import { ClinicTrendChart } from '@/components/ncd/ClinicTrendChart'
+import { StackedTrendChart, type StackSeries } from '@/components/ncd/StackedTrendChart'
 import { ClinicShareDonut } from '@/components/ncd/ClinicShareDonut'
-import { RightsTrendChart } from '@/components/ncd/RightsTrendChart'
-import { buildClinicStackSeries, buildRightsSeries, clinicShare } from '@/services/ncdMonthlyProcessing'
+import { RIGHTS_COLORS, clinicSeriesColor } from '@/components/ncd/visuals'
+import { RIGHTS_GROUPS } from '@/services/ncdCategories'
+import { OTHER_CLINICS_KEY, buildClinicStackSeries, buildRightsSeries, clinicShare } from '@/services/ncdMonthlyProcessing'
 import type { ClinicSeriesGroup, DetailSubject, MonthlyClinicRow, MonthlyRightsRow } from '@/types/ncd'
 
 interface YearlyOverviewProps {
@@ -25,6 +26,19 @@ export function YearlyOverview({ clinicRows, rightsRows, groups, fiscalYear, asO
   const hasRights = rightsPoints.some((point) => point.total > 0)
   const openClinic = (group: ClinicSeriesGroup) => onOpenDetail({ kind: 'clinic', key: group.key })
 
+  const clinicSeries: StackSeries[] = groups.map((group, index) => ({
+    key: group.key,
+    label: group.label,
+    color: clinicSeriesColor(index, group.key),
+    onSelect: group.key === OTHER_CLINICS_KEY ? undefined : () => openClinic(group),
+  }))
+  const rightsSeries: StackSeries[] = RIGHTS_GROUPS.map((group) => ({
+    key: group.key,
+    label: group.label,
+    color: RIGHTS_COLORS[group.key],
+    onSelect: () => onOpenDetail({ kind: 'rights', key: group.key }),
+  }))
+
   return (
     <div className="space-y-6">
       <DiseaseCards clinicRows={clinicRows} fiscalYear={fiscalYear} asOf={asOf} onSelect={(key) => onOpenDetail({ kind: 'disease', key })} />
@@ -34,7 +48,14 @@ export function YearlyOverview({ clinicRows, rightsRows, groups, fiscalYear, asO
         description={`จำนวนนัดของแต่ละคลินิก เทียบนัดรวมของปีงบ ${fiscalYear - 1} · คลิกแท่งเพื่อดูรายละเอียดของคลินิกนั้น`}
         icon={<BarChart3 className="h-5 w-5" />}
       >
-        <ClinicTrendChart points={clinicPoints} groups={groups} fiscalYear={fiscalYear} onSelectGroup={openClinic} />
+        <StackedTrendChart
+          points={clinicPoints}
+          series={clinicSeries}
+          fiscalYear={fiscalYear}
+          measure="นัด"
+          ariaLabel={`กราฟแท่งซ้อนจำนวนนัดรายเดือนแยกตามคลินิก ปีงบประมาณ ${fiscalYear} เทียบปีงบประมาณ ${fiscalYear - 1}`}
+          futureNote="เดือนที่ยังไม่ถึง · ตัวเลขคือนัดล่วงหน้า"
+        />
       </SectionCard>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -56,7 +77,13 @@ export function YearlyOverview({ clinicRows, rightsRows, groups, fiscalYear, asO
           icon={<ShieldCheck className="h-5 w-5" />}
         >
           {hasRights ? (
-            <RightsTrendChart points={rightsPoints} fiscalYear={fiscalYear} onSelectGroup={(key) => onOpenDetail({ kind: 'rights', key })} />
+            <StackedTrendChart
+              points={rightsPoints}
+              series={rightsSeries}
+              fiscalYear={fiscalYear}
+              measure="มาตามนัด"
+              ariaLabel={`กราฟแท่งซ้อนจำนวนนัดที่มาตามนัดรายเดือนแยกตามกลุ่มสิทธิ ปีงบประมาณ ${fiscalYear}`}
+            />
           ) : (
             <EmptyState title="ยังไม่มีผู้ป่วยมาตามนัดในปีงบนี้" description="กลุ่มสิทธิจะแสดงเมื่อมีการมารับบริการตามนัด" />
           )}
