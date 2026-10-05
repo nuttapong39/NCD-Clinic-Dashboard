@@ -59,7 +59,7 @@ const mockConnectionConfig: ConnectionConfig = {
   apiUrl: 'https://bms.hospital.com',
   bearerToken: 'bearer-token-abc',
   databaseType: 'mysql',
-  appIdentifier: 'BMS.Dashboard.React',
+  appIdentifier: 'BMS.Dashboard.NCD',
 }
 
 function makeMockHookReturn(
@@ -99,11 +99,13 @@ describe('BmsSessionProvider / useBmsSessionContext', () => {
     })
     vi.mocked(useBmsSession).mockReturnValue(mockHook)
 
-    let capturedContext: ReturnType<typeof useBmsSessionContext> | null = null
-
     function Consumer() {
-      capturedContext = useBmsSessionContext()
-      return <div data-testid="consumer">connected</div>
+      const context = useBmsSessionContext()
+      return (
+        <div data-testid="consumer" data-session={JSON.stringify(context.session)}>
+          {context.sessionState}
+        </div>
+      )
     }
 
     render(
@@ -114,9 +116,9 @@ describe('BmsSessionProvider / useBmsSessionContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('consumer')).toBeInTheDocument())
 
-    expect(capturedContext).not.toBeNull()
-    expect((capturedContext as unknown as ReturnType<typeof useBmsSessionContext>).sessionState).toBe('connected')
-    expect((capturedContext as unknown as ReturnType<typeof useBmsSessionContext>).session).toEqual(mockSession)
+    const consumer = screen.getByTestId('consumer')
+    expect(consumer).toHaveTextContent('connected')
+    expect(JSON.parse(consumer.getAttribute('data-session') ?? 'null')).toEqual(JSON.parse(JSON.stringify(mockSession)))
   })
 
   it('MUST throw error when useBmsSessionContext is used outside provider', () => {

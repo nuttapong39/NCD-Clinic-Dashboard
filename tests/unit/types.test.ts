@@ -10,19 +10,12 @@ import type {
   QueryState,
   Session,
   BmsSessionResponse,
-  KpiSummary,
-  DepartmentWorkload,
-  DoctorWorkload,
-  VisitTrend,
-  HourlyDistribution,
   SystemInfo,
   UserInfo,
   ConnectionConfig,
   SqlApiResponse,
   SqlApiRequest,
   QueryResult,
-  DemographicBreakdown,
-  PatientTypeDistribution,
 } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -194,128 +187,6 @@ describe('BmsSessionResponse', () => {
 });
 
 // ---------------------------------------------------------------------------
-// KpiSummary
-// ---------------------------------------------------------------------------
-
-describe('KpiSummary', () => {
-  it('MUST be constructed with valid fields', () => {
-    const kpi: KpiSummary = {
-      opdVisitCount: 150,
-      ipdPatientCount: 30,
-      erVisitCount: 12,
-      activeDepartmentCount: 8,
-      timestamp: new Date(),
-    };
-
-    expect(kpi.opdVisitCount).toBe(150);
-    expect(kpi.timestamp).toBeInstanceOf(Date);
-    expectTypeOf(kpi).toExtend<KpiSummary>();
-  });
-
-  it('MUST have the correct property types', () => {
-    expectTypeOf<KpiSummary['opdVisitCount']>().toBeNumber();
-    expectTypeOf<KpiSummary['ipdPatientCount']>().toBeNumber();
-    expectTypeOf<KpiSummary['erVisitCount']>().toBeNumber();
-    expectTypeOf<KpiSummary['activeDepartmentCount']>().toBeNumber();
-    expectTypeOf<KpiSummary['timestamp']>().toEqualTypeOf<Date>();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// DepartmentWorkload
-// ---------------------------------------------------------------------------
-
-describe('DepartmentWorkload', () => {
-  it('MUST be constructed with valid fields', () => {
-    const dept: DepartmentWorkload = {
-      departmentCode: 'DEPT-01',
-      departmentName: 'Cardiology',
-      visitCount: 42,
-    };
-
-    expect(dept.departmentCode).toBe('DEPT-01');
-    expect(dept.departmentName).toBe('Cardiology');
-    expect(dept.visitCount).toBe(42);
-    expectTypeOf(dept).toExtend<DepartmentWorkload>();
-  });
-
-  it('MUST have the correct property types', () => {
-    expectTypeOf<DepartmentWorkload['departmentCode']>().toBeString();
-    expectTypeOf<DepartmentWorkload['departmentName']>().toBeString();
-    expectTypeOf<DepartmentWorkload['visitCount']>().toBeNumber();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// DoctorWorkload
-// ---------------------------------------------------------------------------
-
-describe('DoctorWorkload', () => {
-  it('MUST be constructed with valid fields', () => {
-    const doc: DoctorWorkload = {
-      doctorCode: 'DOC-01',
-      doctorName: 'Dr. Smith',
-      patientCount: 15,
-    };
-
-    expect(doc.doctorCode).toBe('DOC-01');
-    expect(doc.doctorName).toBe('Dr. Smith');
-    expect(doc.patientCount).toBe(15);
-    expectTypeOf(doc).toExtend<DoctorWorkload>();
-  });
-
-  it('MUST have the correct property types', () => {
-    expectTypeOf<DoctorWorkload['doctorCode']>().toBeString();
-    expectTypeOf<DoctorWorkload['doctorName']>().toBeString();
-    expectTypeOf<DoctorWorkload['patientCount']>().toBeNumber();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// VisitTrend
-// ---------------------------------------------------------------------------
-
-describe('VisitTrend', () => {
-  it('MUST be constructed with valid fields', () => {
-    const trend: VisitTrend = {
-      date: '2026-01-01',
-      visitCount: 200,
-    };
-
-    expect(trend.date).toBe('2026-01-01');
-    expect(trend.visitCount).toBe(200);
-    expectTypeOf(trend).toExtend<VisitTrend>();
-  });
-
-  it('MUST have the correct property types', () => {
-    expectTypeOf<VisitTrend['date']>().toBeString();
-    expectTypeOf<VisitTrend['visitCount']>().toBeNumber();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// HourlyDistribution
-// ---------------------------------------------------------------------------
-
-describe('HourlyDistribution', () => {
-  it('MUST be constructed with valid fields', () => {
-    const hourly: HourlyDistribution = {
-      hour: 14,
-      visitCount: 35,
-    };
-
-    expect(hourly.hour).toBe(14);
-    expect(hourly.visitCount).toBe(35);
-    expectTypeOf(hourly).toExtend<HourlyDistribution>();
-  });
-
-  it('MUST have the correct property types', () => {
-    expectTypeOf<HourlyDistribution['hour']>().toBeNumber();
-    expectTypeOf<HourlyDistribution['visitCount']>().toBeNumber();
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Supporting types
 // ---------------------------------------------------------------------------
 
@@ -408,38 +279,5 @@ describe('QueryResult', () => {
     expect(result.data[0].name).toBe('Alice');
     expect(result.recordCount).toBe(1);
     expectTypeOf(result.data).toEqualTypeOf<{ name: string }[]>();
-  });
-});
-
-describe('DemographicBreakdown', () => {
-  it('MUST be constructed with valid fields', () => {
-    const demo: DemographicBreakdown = {
-      ageGroups: [{ group: '0-18', count: 50 }],
-      genderDistribution: [{ gender: 'male', count: 100 }],
-      dataSource: 'patient',
-    };
-
-    expect(demo.ageGroups).toHaveLength(1);
-    expect(demo.dataSource).toBe('patient');
-    expectTypeOf(demo).toExtend<DemographicBreakdown>();
-  });
-
-  it('MUST have dataSource accept only "patient" or "ovst_patient_record"', () => {
-    expectTypeOf<DemographicBreakdown['dataSource']>().toEqualTypeOf<
-      'patient' | 'ovst_patient_record'
-    >();
-  });
-});
-
-describe('PatientTypeDistribution', () => {
-  it('MUST be constructed with valid fields', () => {
-    const pt: PatientTypeDistribution = {
-      pttypeCode: 'OPD',
-      pttypeName: 'Outpatient',
-      visitCount: 200,
-    };
-
-    expect(pt.pttypeCode).toBe('OPD');
-    expectTypeOf(pt).toExtend<PatientTypeDistribution>();
   });
 });

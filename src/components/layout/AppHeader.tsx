@@ -56,7 +56,7 @@ export function AppHeader() {
           </div>
           <div className="brand-text">
             <h1 className="brand-title">ระบบฝากครรภ์และการคลอด</h1>
-            <span className="brand-subtitle">Pregnancy & Labor Dashboard</span>
+            <span className="brand-subtitle">NCD Clinic Dashboard</span>
           </div>
         </div>
 

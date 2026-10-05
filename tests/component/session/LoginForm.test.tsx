@@ -30,11 +30,11 @@ describe('LoginForm', () => {
     it('MUST render branding section with features', () => {
       render(<LoginForm onConnect={mockOnConnect} error={null} isConnecting={false} />)
 
-      expect(screen.getByText('BMS Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Hospital Intelligence Platform')).toBeInTheDocument()
+      expect(screen.getByText('คลินิกเบาหวาน · ความดัน')).toBeInTheDocument()
+      expect(screen.getByText('NCD Clinic Dashboard')).toBeInTheDocument()
       expect(screen.getByText('เชื่อมต่อ HOSxP')).toBeInTheDocument()
-      expect(screen.getByText('AI-Powered Dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Secure Access')).toBeInTheDocument()
+      expect(screen.getByText('แนวโน้มรายปีงบประมาณ')).toBeInTheDocument()
+      expect(screen.getByText('ปลอดภัยด้วย BMS Session')).toBeInTheDocument()
     })
 
     it('MUST render input with placeholder text', () => {

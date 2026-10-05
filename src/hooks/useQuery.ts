@@ -75,6 +75,8 @@ export function useQuery<T>(options: UseQueryOptions<T>): UseQueryResult<T> {
 
   useEffect(() => {
     if (enabled) {
+      // Fetching syncs with an external system; the loading state must flip immediately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       execute()
     }
   }, [enabled, execute])

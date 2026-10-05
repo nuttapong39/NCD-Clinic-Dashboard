@@ -81,7 +81,7 @@ function makeConnectionConfig(
     apiUrl: 'https://bms.hospital.com',
     bearerToken: 'bearer-token-abc',
     databaseType: 'mysql',
-    appIdentifier: 'BMS.Dashboard.React',
+    appIdentifier: 'BMS.Dashboard.NCD',
     ...overrides,
   }
 }

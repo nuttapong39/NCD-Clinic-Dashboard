@@ -23,7 +23,7 @@ import { apiQueue } from '@/services/apiQueue';
 export const PASTE_JSON_URL = 'https://hosxp.net/phapi/PasteJSON';
 
 /** Application identifier sent with every SQL query. */
-export const APP_IDENTIFIER = 'BMS.Dashboard.React';
+export const APP_IDENTIFIER = 'BMS.Dashboard.NCD';
 
 /** Timeout (ms) when retrieving the session payload. */
 export const SESSION_TIMEOUT_MS = 30_000;

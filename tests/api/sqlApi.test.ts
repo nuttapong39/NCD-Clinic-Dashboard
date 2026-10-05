@@ -1,3 +1,4 @@
+// @vitest-environment node
 // =============================================================================
 // T016 - API Contract Tests: SQL Query Execution (/api/sql)
 // Tests the BMS SQL query execution contract using MSW v2 to intercept HTTP
@@ -28,7 +29,7 @@ const config: ConnectionConfig = {
   apiUrl: 'https://test.hosxp.net',
   bearerToken: 'test-token',
   databaseType: 'postgresql' as const,
-  appIdentifier: 'BMS.Dashboard.React',
+  appIdentifier: 'BMS.Dashboard.NCD',
 }
 
 const successSqlResponse: SqlApiResponse = {
@@ -132,7 +133,7 @@ describe('T016 - SQL Query Execution Contract (/api/sql)', () => {
       await executeSqlViaApi('SELECT COUNT(*) as total FROM ovst', config)
 
       expect(capturedBody.sql).toBe('SELECT COUNT(*) as total FROM ovst')
-      expect(capturedBody.app).toBe('BMS.Dashboard.React')
+      expect(capturedBody.app).toBe('BMS.Dashboard.NCD')
     })
 
     it('MUST send Content-Type: application/json header', async () => {

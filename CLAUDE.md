@@ -4,11 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BMS Session Demo Dashboard — a React/TypeScript web application that displays hospital statistics and patient data from HOSxP hospital management systems. The app uses BMS Session IDs for authentication and executes read-only SQL queries against hospital databases (MySQL, MariaDB, PostgreSQL).
+NCD Clinic Dashboard — a single-page React/TypeScript dashboard (for the HOSxP Marketplace) that tracks diabetes (DM) and hypertension (HT) clinic appointments from HOSxP hospital management systems: today's appointment summary per clinic, patients not yet arrived, and fiscal-year trends by clinic and rights group. The app uses BMS Session IDs for authentication and executes read-only SQL queries against hospital databases (MySQL, MariaDB, PostgreSQL).
 
 ## Key Documentation
 
 - `docs/BMS-SESSION-FOR-DEV.md` — Complete BMS Session API specification (v2.0): session flow, `/api/sql` endpoint, field type codes, database compatibility, HOSxP table reference, example queries
+- `docs/UI-TEMPLATE.md` — UX/UI template (tokens, components, charts, Thai copy rules) — the authoritative source for look and behaviour
+- `CONTEXT.md` — Domain glossary (นัด, มาตามนัด, ยังไม่มา, ขาดนัด, กลุ่มสิทธิ, ปีงบประมาณ); use these terms in code and UI labels
+- `docs/adr/` — Architecture decisions (DM/HT by clinic type, attendance by ovst visit)
 - `.specify/memory/constitution.md` — Project constitution (v1.0.0): 9 mandatory development principles — the authoritative source for all development standards
 
 ## Architecture
@@ -119,7 +122,7 @@ Test files co-located with source or in mirrored `tests/` directory. Test names:
 - Query execution MUST show loading state, result count, and execution time
 - Network failures MUST display user-friendly messages with retry options — no raw error codes or stack traces
 - Empty states MUST provide guidance (e.g., "No data for selected period. Try expanding the date range.")
-- UI must be user-friendly and professional — consistent dark/light theme support, responsive design, accessible interactions
+- UI must be user-friendly and professional — light-only theme per `docs/UI-TEMPLATE.md` (no `dark:` variants), responsive design, accessible interactions
 
 ### VII. Performance & Reliability
 
@@ -169,7 +172,7 @@ Test files co-located with source or in mirrored `tests/` directory. Test names:
 - [ ] Error states handled with actionable messages
 - [ ] Commits are atomic and descriptive
 - [ ] Performance considerations addressed
-- [ ] Professional UI — consistent theming, responsive, accessible
+- [ ] Professional UI — follows docs/UI-TEMPLATE.md, responsive, accessible
 
 ## Speckit Workflow
 
@@ -182,8 +185,9 @@ This project uses the speckit system for structured development:
 - `/speckit.analyze` — Cross-artifact consistency analysis
 
 ## Active Technologies
-- TypeScript 5.x (strict mode) + React 19 + Vite 6, Recharts 3.x, shadcn/ui, Tailwind CSS v4, TanStack Table v8, date-fns (001-bms-kpi-dashboard)
+- TypeScript 5.x (strict mode) + React 19 + Vite 6, Recharts 3.x, shadcn/ui (Dialog), Tailwind CSS v4, lucide-react, Noto Sans Thai (002-ncd-dashboard)
 - N/A (all data from BMS Session API; session cookie stored client-side) (001-bms-kpi-dashboard)
 
 ## Recent Changes
+- 002-ncd-dashboard: Replaced the pregnancy dashboard with the NCD (DM/HT) clinic dashboard; adopted docs/UI-TEMPLATE.md (light-only)
 - 001-bms-kpi-dashboard: Added TypeScript 5.x (strict mode) + React 19 + Vite 6, Recharts 3.x, shadcn/ui, Tailwind CSS v4, TanStack Table v8, date-fns

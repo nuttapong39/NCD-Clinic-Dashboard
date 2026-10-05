@@ -1,3 +1,4 @@
+// @vitest-environment node
 // =============================================================================
 // T015 - API Contract Tests: PasteJSON Session Retrieval
 // Tests the BMS session retrieval contract using MSW v2 to intercept HTTP

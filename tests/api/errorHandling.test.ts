@@ -1,3 +1,4 @@
+// @vitest-environment node
 // =============================================================================
 // T017 - API Contract Tests: Error Handling
 // Tests error scenarios for BMS session retrieval and SQL execution using
@@ -33,7 +34,7 @@ const config: ConnectionConfig = {
   apiUrl: 'https://test.hosxp.net',
   bearerToken: 'test-token',
   databaseType: 'postgresql' as const,
-  appIdentifier: 'BMS.Dashboard.React',
+  appIdentifier: 'BMS.Dashboard.NCD',
 }
 
 // ---------------------------------------------------------------------------

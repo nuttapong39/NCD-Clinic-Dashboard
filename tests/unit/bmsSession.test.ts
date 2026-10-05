@@ -563,7 +563,7 @@ describe('BMS Session Constants', () => {
     expect(PASTE_JSON_URL).toBe('https://hosxp.net/phapi/PasteJSON');
   });
 
-  it('MUST have APP_IDENTIFIER is BMS.Dashboard.React', () => {
-    expect(APP_IDENTIFIER).toBe('BMS.Dashboard.React');
+  it('MUST have APP_IDENTIFIER is BMS.Dashboard.NCD', () => {
+    expect(APP_IDENTIFIER).toBe('BMS.Dashboard.NCD');
   });
 });

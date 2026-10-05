@@ -42,7 +42,7 @@ const mockConnectionConfig: ConnectionConfig = {
   apiUrl: 'https://test.api.com',
   bearerToken: 'test-token',
   databaseType: 'postgresql',
-  appIdentifier: 'BMS.Dashboard.React',
+  appIdentifier: 'BMS.Dashboard.NCD',
 }
 
 const mockContextValue = (overrides: Partial<ReturnType<typeof useBmsSessionContext>> = {}) => ({
@@ -77,7 +77,7 @@ describe('AppHeader', () => {
 
       render(<AppHeader />, { wrapper: BrowserRouter })
 
-      expect(screen.getByText('Pregnancy & Labor Dashboard')).toBeInTheDocument()
+      expect(screen.getByText('NCD Clinic Dashboard')).toBeInTheDocument()
     })
   })
 

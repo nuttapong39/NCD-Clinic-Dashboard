@@ -43,17 +43,17 @@ export function LoginForm({ onConnect, error, isConnecting }: LoginFormProps) {
               <Stethoscope className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="branding-title">ระบบฝากครรภ์และการคลอด</h1>
-              <p className="branding-subtitle">Pregnancy & Labor Dashboard</p>
+              <h1 className="branding-title">คลินิกเบาหวาน · ความดัน</h1>
+              <p className="branding-subtitle">NCD Clinic Dashboard</p>
             </div>
           </div>
 
           {/* Tagline */}
           <div className="branding-tagline">
             <h2>
-              ติดตามข้อมูลฝากครรภ์
+              ติดตามนัดผู้ป่วย
               <br />
-              <span className="text-gradient">การคลอดและทารกแรกเกิด</span>
+              <span className="text-gradient">เบาหวานและความดันโลหิตสูง</span>
             </h2>
           </div>
 
@@ -65,7 +65,7 @@ export function LoginForm({ onConnect, error, isConnecting }: LoginFormProps) {
               </div>
               <div>
                 <h3>เชื่อมต่อ HOSxP</h3>
-                <p>ข้อมูล ANC, การคลอด และทารกแรกเกิดแบบ Real-time</p>
+                <p>สรุปนัดวันนี้และรายชื่อผู้ป่วยที่ยังไม่มา</p>
               </div>
             </div>
 
@@ -74,8 +74,8 @@ export function LoginForm({ onConnect, error, isConnecting }: LoginFormProps) {
                 <Zap className="h-4 w-4" />
               </div>
               <div>
-                <h3>KPI ตามเกณฑ์กระทรวง</h3>
-                <p>ตัวชี้วัด MOPH/WHO พร้อมรายละเอียดรายบุคคล</p>
+                <h3>แนวโน้มรายปีงบประมาณ</h3>
+                <p>แยกตามคลินิกและสิทธิการรักษา</p>
               </div>
             </div>
 
