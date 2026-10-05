@@ -76,3 +76,13 @@ export function elapsedMonths(fiscalYear: number, today: Date): number {
 export function monthKeyOf(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`
 }
+
+/** Caption under comparison numbers: whole previous year, or the same elapsed months (§9.2). */
+export function compareLabel(fiscalYear: number, elapsed: number): string {
+  const previous = fiscalYear - 1
+  if (elapsed <= 0 || elapsed >= MONTHS_PER_YEAR) return `เทียบปีงบประมาณ ${previous}`
+  const months = fiscalMonths(fiscalYear)
+  const monthName = (month: string) => THAI_SHORT_MONTHS[Number(month.slice(5, 7)) - 1]
+  const span = elapsed === 1 ? monthName(months[0]) : `${monthName(months[0])}–${monthName(months[elapsed - 1])}`
+  return `เทียบ ${span} ของปีงบประมาณ ${previous}`
+}

@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { parseNumber } from '@/utils/dataParser'
-import { fiscalMonthLabel, fiscalMonths, monthKeyOf } from '@/utils/fiscalYear'
+import { compareLabel, elapsedMonths, fiscalMonthLabel, fiscalMonths, monthKeyOf } from '@/utils/fiscalYear'
 import {
   RIGHTS_GROUPS,
   diseaseKeyOfCode,
@@ -316,4 +316,37 @@ export function monthlyCsvRows(rows: readonly MonthlyClinicRow[], fiscalYear: nu
         attendance_rate: rate === null ? null : Math.round(rate * 10) / 10,
       }
     })
+}
+
+export interface SubjectYearSummary {
+  current: AppointmentCounts
+  previous: AppointmentCounts
+  cameChange: number | null
+  attendanceRate: number | null
+  previousAttendanceRate: number | null
+  elapsed: number
+  compareLabel: string
+}
+
+/** Year-to-date totals of a subject against the same months of the previous fiscal year. */
+export function subjectYearSummary(
+  subject: DetailSubject,
+  clinicRows: readonly MonthlyClinicRow[],
+  rightsRows: readonly MonthlyRightsRow[],
+  fiscalYear: number,
+  today: Date,
+): SubjectYearSummary {
+  const series = detailSeries(subject, clinicRows, rightsRows, fiscalYear, today)
+  const elapsed = elapsedMonths(fiscalYear, today)
+  const current = summarizeSeries(series.current, elapsed)
+  const previous = summarizeSeries(series.previous, elapsed)
+  return {
+    current,
+    previous,
+    cameChange: percentChange(current.came, previous.came),
+    attendanceRate: attendanceRate(current),
+    previousAttendanceRate: attendanceRate(previous),
+    elapsed,
+    compareLabel: compareLabel(fiscalYear, elapsed),
+  }
 }

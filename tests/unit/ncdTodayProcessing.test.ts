@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { summarizeToday, groupNotArrivedByPatient } from '@/services/ncdTodayProcessing'
+import { summarizeToday, groupNotArrivedByPatient, filterNotArrived, notArrivedCsvRows } from '@/services/ncdTodayProcessing'
 
 describe('summarizeToday', () => {
   const rows = [
@@ -81,5 +81,47 @@ describe('groupNotArrivedByPatient', () => {
       { standard_ncd_code: '001', oapp_id: 4, hn: '000789', patient_name: 'นายมา ก่อน', nexttime: '07:00:00', local_clinic_code: '010', clinic_name: 'คลินิกเบาหวาน', doctor: null, note: null },
     ])
     expect(patients.map((patient) => patient.hn)).toEqual(['000789', '000123', '000456'])
+  })
+})
+
+describe('filterNotArrived', () => {
+  const patients = groupNotArrivedByPatient([
+    { standard_ncd_code: '001', hn: '000123', patient_name: 'นายสมชาย ใจดี', nexttime: '08:00:00', local_clinic_code: '010', clinic_name: 'คลินิกเบาหวาน' },
+    { standard_ncd_code: '002', hn: '000123', patient_name: 'นายสมชาย ใจดี', nexttime: '09:00:00', local_clinic_code: '015', clinic_name: 'คลินิกความดัน' },
+    { standard_ncd_code: '002', hn: '000456', patient_name: 'นางสมศรี มีสุข', nexttime: '10:00:00', local_clinic_code: '015', clinic_name: 'คลินิกความดัน' },
+  ])
+
+  it('MUST return everyone when no search text or clinic is given', () => {
+    expect(filterNotArrived(patients, { query: '  ', clinicCode: null })).toHaveLength(2)
+  })
+
+  it('MUST match the search text against HN or patient name', () => {
+    expect(filterNotArrived(patients, { query: '456', clinicCode: null }).map((p) => p.hn)).toEqual(['000456'])
+    expect(filterNotArrived(patients, { query: 'สมชาย', clinicCode: null }).map((p) => p.hn)).toEqual(['000123'])
+  })
+
+  it('MUST keep patients with an appointment in the selected clinic', () => {
+    expect(filterNotArrived(patients, { query: '', clinicCode: '010' }).map((p) => p.hn)).toEqual(['000123'])
+    expect(filterNotArrived(patients, { query: '', clinicCode: '015' }).map((p) => p.hn)).toEqual(['000123', '000456'])
+  })
+})
+
+describe('notArrivedCsvRows', () => {
+  it('MUST export one row per patient with clinics and notes joined', () => {
+    const patients = groupNotArrivedByPatient([
+      { standard_ncd_code: '001', hn: '000123', patient_name: 'นายสมชาย ใจดี', nexttime: '08:00:00', local_clinic_code: '010', clinic_name: 'คลินิกเบาหวาน', doctor: 'D1', note: 'งดอาหาร' },
+      { standard_ncd_code: '002', hn: '000123', patient_name: 'นายสมชาย ใจดี', nexttime: '09:00:00', local_clinic_code: '015', clinic_name: 'คลินิกความดัน', doctor: 'D2', note: 'นำยามาด้วย' },
+    ])
+    expect(notArrivedCsvRows(patients)).toEqual([
+      {
+        appointment_time: '08:00',
+        hn: '000123',
+        patient_name: 'นายสมชาย ใจดี',
+        clinics: 'คลินิกเบาหวาน; คลินิกความดัน',
+        diseases: 'DM; HT',
+        doctor: 'D1',
+        notes: 'งดอาหาร; นำยามาด้วย',
+      },
+    ])
   })
 })

@@ -13,6 +13,7 @@ import {
   buildRightsSeries,
   detailSeries,
   monthlyCsvRows,
+  subjectYearSummary,
 } from '@/services/ncdMonthlyProcessing'
 import type { MonthlyClinicRow, MonthlyRightsRow } from '@/types/ncd'
 
@@ -273,5 +274,33 @@ describe('monthlyCsvRows', () => {
       upcoming: 0,
       attendance_rate: 66.7,
     })
+  })
+})
+
+describe('subjectYearSummary', () => {
+  const clinicRows = [
+    clinicRow({ month: '2025-10', clinicCode: '010', appointments: 40, came: 30, missed: 10 }),
+    clinicRow({ month: '2025-11', clinicCode: '010', appointments: 50, came: 20, missed: 5, notArrivedToday: 5, upcoming: 20 }),
+    clinicRow({ month: '2026-01', clinicCode: '010', appointments: 99, upcoming: 99 }),
+    clinicRow({ month: '2024-10', clinicCode: '010', appointments: 30, came: 25, missed: 5 }),
+    clinicRow({ month: '2024-11', clinicCode: '010', appointments: 30, came: 25, missed: 5 }),
+    clinicRow({ month: '2024-12', clinicCode: '010', appointments: 30, came: 30 }),
+  ]
+
+  it('MUST compare the elapsed months of this fiscal year with the same months last year', () => {
+    const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2569, TODAY)
+    expect(summary.current).toMatchObject({ came: 50, missed: 15 })
+    expect(summary.previous).toMatchObject({ came: 50, missed: 10 })
+    expect(summary.cameChange).toBe(0)
+    expect(summary.attendanceRate).toBeCloseTo(76.92, 2)
+    expect(summary.previousAttendanceRate).toBeCloseTo(83.33, 2)
+    expect(summary.compareLabel).toBe('เทียบ ต.ค.–พ.ย. ของปีงบประมาณ 2568')
+  })
+
+  it('MUST compare whole years for a fiscal year that has ended', () => {
+    const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2568, TODAY)
+    expect(summary.current.came).toBe(80)
+    expect(summary.cameChange).toBeNull()
+    expect(summary.compareLabel).toBe('เทียบปีงบประมาณ 2567')
   })
 })

@@ -7,6 +7,7 @@ import {
   fiscalYearOptions,
   elapsedMonths,
   comparisonRange,
+  compareLabel,
 } from '@/utils/fiscalYear'
 
 describe('fiscalYearOf', () => {
@@ -68,5 +69,16 @@ describe('elapsedMonths', () => {
 
   it('MUST return 0 for a fiscal year that has not started', () => {
     expect(elapsedMonths(2570, new Date(2025, 9, 5))).toBe(0)
+  })
+})
+
+describe('compareLabel', () => {
+  it('MUST name the whole previous fiscal year once all 12 months have passed', () => {
+    expect(compareLabel(2568, 12)).toBe('เทียบปีงบประมาณ 2567')
+  })
+
+  it('MUST name the matching months of the previous fiscal year while the year is in progress', () => {
+    expect(compareLabel(2569, 3)).toBe('เทียบ ต.ค.–ธ.ค. ของปีงบประมาณ 2568')
+    expect(compareLabel(2569, 1)).toBe('เทียบ ต.ค. ของปีงบประมาณ 2568')
   })
 })

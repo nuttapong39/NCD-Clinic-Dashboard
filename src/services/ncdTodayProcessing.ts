@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { parseNumber } from '@/utils/dataParser'
-import { diseaseKeyOfCode, diseaseOrder } from '@/services/ncdCategories'
+import { diseaseKeyOfCode, diseaseOf, diseaseOrder } from '@/services/ncdCategories'
 import type { ClinicToday, NotArrivedPatient, PatientClinicVisit, TodaySummary } from '@/types/ncd'
 
 type RawRow = Record<string, unknown>
@@ -99,4 +99,43 @@ export function groupNotArrivedByPatient(rows: readonly RawRow[]): NotArrivedPat
     if (b.appointmentTime === null) return -1
     return a.appointmentTime.localeCompare(b.appointmentTime)
   })
+}
+
+export interface NotArrivedFilter {
+  query: string
+  clinicCode: string | null
+}
+
+/** Search by HN or name, and/or keep patients with an appointment in one clinic. */
+export function filterNotArrived(patients: readonly NotArrivedPatient[], filter: NotArrivedFilter): NotArrivedPatient[] {
+  const query = filter.query.trim().toLowerCase()
+  return patients.filter(
+    (patient) =>
+      (filter.clinicCode === null || patient.clinics.some((clinic) => clinic.clinicCode === filter.clinicCode)) &&
+      (query === '' || patient.hn.toLowerCase().includes(query) || patient.patientName.toLowerCase().includes(query)),
+  )
+}
+
+export const NOT_ARRIVED_CSV_COLUMNS = [
+  'appointment_time',
+  'hn',
+  'patient_name',
+  'clinics',
+  'diseases',
+  'doctor',
+  'notes',
+] as const
+
+export type NotArrivedCsvRow = Record<(typeof NOT_ARRIVED_CSV_COLUMNS)[number], string>
+
+export function notArrivedCsvRows(patients: readonly NotArrivedPatient[]): NotArrivedCsvRow[] {
+  return patients.map((patient) => ({
+    appointment_time: patient.appointmentTime?.slice(0, 5) ?? '',
+    hn: patient.hn,
+    patient_name: patient.patientName,
+    clinics: patient.clinics.map((clinic) => clinic.clinicName).join('; '),
+    diseases: [...new Set(patient.clinics.map((clinic) => diseaseOf(clinic.diseaseKey).shortLabel))].join('; '),
+    doctor: patient.doctor ?? '',
+    notes: patient.notes.join('; '),
+  }))
 }
