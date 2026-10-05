@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { NCD_CODES } from '@/services/ncdQueries'
-import type { DiseaseKey, RightsGroupKey } from '@/types/ncd'
+import type { ClinicInfo, DiseaseKey, RightsGroupKey } from '@/types/ncd'
 
 export interface DiseaseDefinition {
   key: DiseaseKey
@@ -67,4 +67,13 @@ export function rightsGroupKeyOfHipdata(hipdataCode: string | null): RightsGroup
 
 export function diseaseOrder(key: DiseaseKey): number {
   return DISEASES.findIndex((disease) => disease.key === key)
+}
+
+export function rightsGroupOrder(key: RightsGroupKey): number {
+  return RIGHTS_GROUPS.findIndex((group) => group.key === key)
+}
+
+/** Display order of clinics everywhere: DM clinics first, then by clinic code. */
+export function compareClinics(a: ClinicInfo, b: ClinicInfo): number {
+  return diseaseOrder(a.diseaseKey) - diseaseOrder(b.diseaseKey) || a.clinicCode.localeCompare(b.clinicCode)
 }

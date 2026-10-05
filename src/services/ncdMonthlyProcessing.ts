@@ -3,14 +3,15 @@
 // "ดึงครั้งเดียว คำนวณฝั่ง client" (UI-TEMPLATE §1, §9.2–9.4)
 // =============================================================================
 
-import { parseNumber } from '@/utils/dataParser'
+import { parseCount as count, parseNumber, parseText as text } from '@/utils/dataParser'
 import { compareLabel, elapsedMonths, fiscalMonthLabel, fiscalMonths, monthKeyOf } from '@/utils/fiscalYear'
 import {
   RIGHTS_GROUPS,
+  compareClinics,
   diseaseKeyOfCode,
   diseaseOf,
-  diseaseOrder,
   rightsGroupKeyOfHipdata,
+  rightsGroupOrder,
 } from '@/services/ncdCategories'
 import type {
   AppointmentCounts,
@@ -36,10 +37,6 @@ const EMPTY_COUNTS: AppointmentCounts = { appointments: 0, came: 0, missed: 0, n
 // Normalization
 // ---------------------------------------------------------------------------
 
-function count(value: unknown): number {
-  return parseNumber(value) ?? 0
-}
-
 function monthOf(row: RawRow): string | null {
   const year = parseNumber(row['yr'])
   const month = parseNumber(row['mo'])
@@ -52,14 +49,14 @@ export function normalizeMonthlyClinicRows(rows: readonly RawRow[]): MonthlyClin
   const result: MonthlyClinicRow[] = []
   for (const row of rows) {
     const month = monthOf(row)
-    const diseaseKey = diseaseKeyOfCode(String(row['standard_ncd_code'] ?? '').trim())
-    const clinicCode = String(row['local_clinic_code'] ?? '').trim()
+    const diseaseKey = diseaseKeyOfCode(text(row['standard_ncd_code']) ?? '')
+    const clinicCode = text(row['local_clinic_code'])
     if (!month || !diseaseKey || !clinicCode) continue
     result.push({
       month,
       diseaseKey,
       clinicCode,
-      clinicName: String(row['local_clinic_name'] ?? '').trim() || clinicCode,
+      clinicName: text(row['local_clinic_name']) ?? clinicCode,
       appointments: count(row['appt']),
       came: count(row['came']),
       missed: count(row['missed']),
@@ -76,17 +73,16 @@ export function normalizeMonthlyRightsRows(rows: readonly RawRow[]): MonthlyRigh
   for (const row of rows) {
     const month = monthOf(row)
     if (!month) continue
-    const group = rightsGroupKeyOfHipdata(row['hipdata_code'] === null ? null : String(row['hipdata_code'] ?? ''))
+    const group = rightsGroupKeyOfHipdata(text(row['hipdata_code']))
     const key = `${month}|${group}`
     totals.set(key, (totals.get(key) ?? 0) + count(row['came']))
   }
-  const groupOrder = (group: RightsGroupKey) => RIGHTS_GROUPS.findIndex((candidate) => candidate.key === group)
   return [...totals.entries()]
     .map(([key, came]) => {
       const [month, rightsGroup] = key.split('|') as [string, RightsGroupKey]
       return { month, rightsGroup, came }
     })
-    .sort((a, b) => a.month.localeCompare(b.month) || groupOrder(a.rightsGroup) - groupOrder(b.rightsGroup))
+    .sort((a, b) => a.month.localeCompare(b.month) || rightsGroupOrder(a.rightsGroup) - rightsGroupOrder(b.rightsGroup))
 }
 
 // ---------------------------------------------------------------------------
@@ -151,9 +147,7 @@ export function listClinics(rows: readonly MonthlyClinicRow[]): ClinicInfo[] {
       clinics.set(row.clinicCode, { clinicCode: row.clinicCode, clinicName: row.clinicName, diseaseKey: row.diseaseKey })
     }
   }
-  return [...clinics.values()].sort(
-    (a, b) => diseaseOrder(a.diseaseKey) - diseaseOrder(b.diseaseKey) || a.clinicCode.localeCompare(b.clinicCode),
-  )
+  return [...clinics.values()].sort(compareClinics)
 }
 
 function inFiscalYear(fiscalYear: number): (row: { month: string }) => boolean {

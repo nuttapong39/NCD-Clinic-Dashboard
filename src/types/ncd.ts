@@ -6,11 +6,15 @@ export type DiseaseKey = 'dm' | 'ht'
 
 export type RightsGroupKey = 'uc' | 'ofc' | 'sss' | 'lgo' | 'other'
 
-/** Today's counts for one clinic: นัด / มาตามนัด / ยังไม่มา */
-export interface ClinicToday {
-  diseaseKey: DiseaseKey
+/** A hospital clinic and the NCD disease of its clinic type */
+export interface ClinicInfo {
   clinicCode: string
   clinicName: string
+  diseaseKey: DiseaseKey
+}
+
+/** Today's counts for one clinic: นัด / มาตามนัด / ยังไม่มา */
+export interface ClinicToday extends ClinicInfo {
   appointments: number
   came: number
   notArrived: number
@@ -23,18 +27,12 @@ export interface TodaySummary {
   clinics: ClinicToday[]
 }
 
-export interface PatientClinicVisit {
-  clinicCode: string
-  clinicName: string
-  diseaseKey: DiseaseKey
-}
-
 /** One patient with at least one appointment today that has not arrived yet */
 export interface NotArrivedPatient {
   hn: string
   patientName: string
   appointmentTime: string | null
-  clinics: PatientClinicVisit[]
+  clinics: ClinicInfo[]
   doctor: string | null
   notes: string[]
 }
@@ -67,12 +65,6 @@ export interface MonthPoint {
 }
 
 export type AppointmentPoint = MonthPoint & AppointmentCounts
-
-export interface ClinicInfo {
-  clinicCode: string
-  clinicName: string
-  diseaseKey: DiseaseKey
-}
 
 /** A chart series: one clinic, or several folded into "คลินิกอื่น ๆ" (diseaseKey null) */
 export interface ClinicSeriesGroup {

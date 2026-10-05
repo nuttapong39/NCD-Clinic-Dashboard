@@ -1,6 +1,6 @@
 // tests/unit/dataParser.test.ts
 import { describe, it, expect } from 'vitest'
-import { parseArray, parseNumber } from '@/utils/dataParser'
+import { parseArray, parseNumber, parseText, parseCount } from '@/utils/dataParser'
 
 describe('parseArray', () => {
   it('MUST return typed array when input is valid array', () => {
@@ -50,5 +50,30 @@ describe('parseNumber', () => {
 
   it('MUST return null for empty strings', () => {
     expect(parseNumber('')).toBeNull()
+  })
+})
+
+describe('parseText', () => {
+  it('MUST trim text values and turn numbers into strings', () => {
+    expect(parseText('  คลินิกเบาหวาน ')).toBe('คลินิกเบาหวาน')
+    expect(parseText(10)).toBe('10')
+  })
+
+  it('MUST return null for null, undefined and blank values', () => {
+    expect(parseText(null)).toBeNull()
+    expect(parseText(undefined)).toBeNull()
+    expect(parseText('   ')).toBeNull()
+  })
+})
+
+describe('parseCount', () => {
+  it('MUST parse numeric values including thousands separators', () => {
+    expect(parseCount('1,020')).toBe(1020)
+    expect(parseCount(7)).toBe(7)
+  })
+
+  it('MUST treat missing or non-numeric values as zero', () => {
+    expect(parseCount(null)).toBe(0)
+    expect(parseCount('n/a')).toBe(0)
   })
 })

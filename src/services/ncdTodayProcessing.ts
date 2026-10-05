@@ -2,25 +2,11 @@
 // Today's NCD appointments: per-clinic summary and not-yet-arrived patients
 // =============================================================================
 
-import { parseNumber } from '@/utils/dataParser'
-import { diseaseKeyOfCode, diseaseOf, diseaseOrder } from '@/services/ncdCategories'
-import type { ClinicToday, NotArrivedPatient, PatientClinicVisit, TodaySummary } from '@/types/ncd'
+import { parseCount as count, parseText as text } from '@/utils/dataParser'
+import { compareClinics, diseaseKeyOfCode, diseaseOf } from '@/services/ncdCategories'
+import type { ClinicToday, NotArrivedPatient, TodaySummary } from '@/types/ncd'
 
 type RawRow = Record<string, unknown>
-
-function text(value: unknown): string | null {
-  if (value === null || value === undefined) return null
-  const trimmed = String(value).trim()
-  return trimmed === '' ? null : trimmed
-}
-
-function count(value: unknown): number {
-  return parseNumber(value) ?? 0
-}
-
-function byDiseaseThenClinic(a: PatientClinicVisit, b: PatientClinicVisit): number {
-  return diseaseOrder(a.diseaseKey) - diseaseOrder(b.diseaseKey) || a.clinicCode.localeCompare(b.clinicCode)
-}
 
 function toClinicToday(row: RawRow): ClinicToday | null {
   const diseaseKey = diseaseKeyOfCode(text(row['standard_ncd_code']) ?? '')
@@ -41,7 +27,7 @@ export function summarizeToday(rows: readonly RawRow[]): TodaySummary {
   const clinics = rows
     .map(toClinicToday)
     .filter((clinic): clinic is ClinicToday => clinic !== null)
-    .sort(byDiseaseThenClinic)
+    .sort(compareClinics)
   return {
     appointments: clinics.reduce((sum, clinic) => sum + clinic.appointments, 0),
     came: clinics.reduce((sum, clinic) => sum + clinic.came, 0),
@@ -92,7 +78,7 @@ export function groupNotArrivedByPatient(rows: readonly RawRow[]): NotArrivedPat
   }
 
   const result = [...patients.values()]
-  for (const patient of result) patient.clinics.sort(byDiseaseThenClinic)
+  for (const patient of result) patient.clinics.sort(compareClinics)
   return result.sort((a, b) => {
     if (a.appointmentTime === b.appointmentTime) return a.hn.localeCompare(b.hn)
     if (a.appointmentTime === null) return 1
