@@ -26,6 +26,9 @@ export const NCD_COUNTED_OAPP_STATUS = [1, 2] as const
 /** จำนวนแถวสูงสุดของรายชื่อผู้ป่วยที่ยังไม่มา */
 export const MISSED_LIST_LIMIT = 1000
 
+/** จำนวนคลินิกสูงสุดในสรุปนัดวันนี้ */
+const CLINIC_ROW_LIMIT = 500
+
 /** จำนวนแถวสูงสุดของข้อมูลรายเดือน (24 เดือน × คลินิก/กลุ่มสิทธิ) */
 const MONTHLY_ROW_LIMIT = 5000
 
@@ -90,6 +93,7 @@ export function getNcdAppointmentSummaryToday(
       AND a.oapp_status_id IN (${COUNTED_STATUS_LIST})
     GROUP BY tt.moph_ncd_code, tt.hosxp_clinic_type_name, c.clinic, c.name
     ORDER BY tt.moph_ncd_code, c.clinic
+    LIMIT ${CLINIC_ROW_LIMIT}
   `.trim()
 }
 

@@ -28,6 +28,11 @@ describe('ncdQueries', () => {
       expect(sql).toContain('a.nextdate = CURRENT_DATE')
     })
 
+    it('MUST cap the clinic rows with a LIMIT', () => {
+      const sql = ncdQueries.getNcdAppointmentSummaryToday(mysql)
+      expect(sql).toMatch(/LIMIT \d+$/)
+    })
+
     it('MUST accept a single disease code', () => {
       const sql = ncdQueries.getNcdAppointmentSummaryToday(mysql, [NCD_CODES.HYPERTENSION])
       expect(sql).toContain("moph_ncd_code IN ('002')")
