@@ -43,4 +43,12 @@ describe('parseNumber', () => {
     expect(parseNumber('not-a-number')).toBeNull()
     expect(parseNumber('abc')).toBeNull()
   })
+
+  it('MUST strip thousands separators from numeric strings', () => {
+    expect(parseNumber('1,234')).toBe(1234)
+  })
+
+  it('MUST return null for empty strings', () => {
+    expect(parseNumber('')).toBeNull()
+  })
 })

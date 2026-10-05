@@ -6,7 +6,7 @@ export function parseArray<T>(data: unknown): T[] {
 }
 
 export function parseNumber(value: unknown): number | null {
-  if (value === null || value === undefined) return null
-  const num = Number(value)
+  if (value === null || value === undefined || value === '') return null
+  const num = typeof value === 'string' ? Number(value.replaceAll(',', '')) : Number(value)
   return isNaN(num) ? null : num
 }
