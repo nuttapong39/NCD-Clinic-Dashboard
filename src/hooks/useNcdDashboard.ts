@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useBmsSessionContext } from '@/contexts/BmsSessionContext'
 import { useQuery } from '@/hooks/useQuery'
-import { MISSED_LIST_LIMIT, ncdQueries } from '@/services/ncdQueries'
+import { NOT_ARRIVED_LIST_LIMIT, ncdQueries } from '@/services/ncdQueries'
 import { groupNotArrivedByPatient, summarizeToday } from '@/services/ncdTodayProcessing'
 import { normalizeMonthlyClinicRows, normalizeMonthlyRightsRows } from '@/services/ncdMonthlyProcessing'
 import { comparisonRange, fiscalYearOf, fiscalYearOptions } from '@/utils/fiscalYear'
@@ -82,12 +82,12 @@ export function useNcdDashboard({ now = () => new Date() }: UseNcdDashboardOptio
     queryFn: async () => {
       const [summaryRows, notArrivedRows] = await Promise.all([
         runRows(ncdQueries.getNcdAppointmentSummaryToday(dbType)),
-        runRows(ncdQueries.getNcdMissedAppointmentsToday(dbType)),
+        runRows(ncdQueries.getNcdNotArrivedAppointmentsToday(dbType)),
       ])
       return {
         summary: summarizeToday(summaryRows),
         notArrived: groupNotArrivedByPatient(notArrivedRows),
-        limitReached: notArrivedRows.length >= MISSED_LIST_LIMIT,
+        limitReached: notArrivedRows.length >= NOT_ARRIVED_LIST_LIMIT,
       }
     },
     onSuccess: () => setLastUpdatedAt(clock()),

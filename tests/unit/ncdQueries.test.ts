@@ -1,6 +1,6 @@
 // tests/unit/ncdQueries.test.ts
 import { describe, it, expect } from 'vitest'
-import { ncdQueries, NCD_CODES, MISSED_LIST_LIMIT } from '@/services/ncdQueries'
+import { ncdQueries, NCD_CODES, NOT_ARRIVED_LIST_LIMIT } from '@/services/ncdQueries'
 import type { DatabaseType } from '@/types'
 
 const ATTENDED_BY_VISIT = /EXISTS \(\s*SELECT 1 FROM ovst o\s+WHERE o\.hn = a\.hn AND o\.vstdate = a\.nextdate\s*\)/
@@ -52,9 +52,9 @@ describe('ncdQueries', () => {
     })
   })
 
-  describe('getNcdMissedAppointmentsToday', () => {
+  describe('getNcdNotArrivedAppointmentsToday', () => {
     it('MUST list only counted appointments without a visit', () => {
-      const sql = ncdQueries.getNcdMissedAppointmentsToday(postgresql, [NCD_CODES.HYPERTENSION])
+      const sql = ncdQueries.getNcdNotArrivedAppointmentsToday(postgresql, [NCD_CODES.HYPERTENSION])
       expect(sql).toContain("moph_ncd_code IN ('002')")
       expect(sql).toContain('a.oapp_status_id IN (1, 2)')
       expect(sql).toMatch(new RegExp(`NOT ${ATTENDED_BY_VISIT.source}`))
@@ -62,14 +62,14 @@ describe('ncdQueries', () => {
     })
 
     it('MUST use CONCAT for patient name (works on MySQL and PostgreSQL)', () => {
-      const sql = ncdQueries.getNcdMissedAppointmentsToday(mysql)
+      const sql = ncdQueries.getNcdNotArrivedAppointmentsToday(mysql)
       expect(sql).toContain("CONCAT(p.pname, p.fname, ' ', p.lname)")
       expect(sql).not.toContain('||')
     })
 
     it('MUST cap the patient list with a LIMIT', () => {
-      const sql = ncdQueries.getNcdMissedAppointmentsToday(mysql)
-      expect(MISSED_LIST_LIMIT).toBe(1000)
+      const sql = ncdQueries.getNcdNotArrivedAppointmentsToday(mysql)
+      expect(NOT_ARRIVED_LIST_LIMIT).toBe(1000)
       expect(sql).toMatch(/LIMIT 1000$/)
     })
   })
@@ -127,7 +127,7 @@ describe('ncdQueries', () => {
 
   describe('input validation', () => {
     it('MUST reject non-numeric codes (SQL injection guard)', () => {
-      expect(() => ncdQueries.getNcdMissedAppointmentsToday(mysql, ["002') OR 1=1 --"])).toThrow()
+      expect(() => ncdQueries.getNcdNotArrivedAppointmentsToday(mysql, ["002') OR 1=1 --"])).toThrow()
       expect(() => ncdQueries.getNcdMonthlyAppointmentsByClinic(mysql, ["1' --"])).toThrow()
       expect(() => ncdQueries.getNcdMonthlyAttendedByRightsGroup(mysql, ['abc'])).toThrow()
     })

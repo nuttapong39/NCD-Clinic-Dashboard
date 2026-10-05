@@ -4,7 +4,7 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { ToolbarButton } from '@/components/ui/ToolbarButton'
 import { EmptyState } from '@/components/ui/StateViews'
 import { DISEASE_VISUALS } from '@/components/ncd/visuals'
-import { MISSED_LIST_LIMIT } from '@/services/ncdQueries'
+import { NOT_ARRIVED_LIST_LIMIT } from '@/services/ncdQueries'
 import { NOT_ARRIVED_CSV_COLUMNS, filterNotArrived, notArrivedCsvRows } from '@/services/ncdTodayProcessing'
 import { downloadCsv, toCsv } from '@/utils/csv'
 import { NO_VALUE, formatNumber, formatTime } from '@/utils/formatters'
@@ -51,7 +51,7 @@ export function NotArrivedTable({ patients, clinics, limitReached, selectedClini
       {limitReached && (
         <p role="alert" className="mb-4 flex gap-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-700">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          แสดง {formatNumber(MISSED_LIST_LIMIT)} นัดแรกเท่านั้น รายชื่ออาจไม่ครบ · กรองตามคลินิกหรือดูรายชื่อเต็มในโปรแกรม HOSxP
+          แสดง {formatNumber(NOT_ARRIVED_LIST_LIMIT)} นัดแรกเท่านั้น รายชื่ออาจไม่ครบ · กรองตามคลินิกหรือดูรายชื่อเต็มในโปรแกรม HOSxP
         </p>
       )}
 

@@ -24,7 +24,7 @@ export type NcdCode = (typeof NCD_CODES)[keyof typeof NCD_CODES]
 export const NCD_COUNTED_OAPP_STATUS = [1, 2] as const
 
 /** จำนวนแถวสูงสุดของรายชื่อผู้ป่วยที่ยังไม่มา */
-export const MISSED_LIST_LIMIT = 1000
+export const NOT_ARRIVED_LIST_LIMIT = 1000
 
 /** จำนวนคลินิกสูงสุดในสรุปนัดวันนี้ */
 const CLINIC_ROW_LIMIT = 500
@@ -102,7 +102,7 @@ export function getNcdAppointmentSummaryToday(
  * คอลัมน์: standard_ncd_code, disease_name, oapp_id, hn, patient_name, nextdate,
  *          nexttime, local_clinic_code, clinic_name, doctor, note
  */
-export function getNcdMissedAppointmentsToday(
+export function getNcdNotArrivedAppointmentsToday(
   dbType: DatabaseType,
   codes: readonly string[] = DEFAULT_NCD_CODES,
 ): string {
@@ -129,7 +129,7 @@ export function getNcdMissedAppointmentsToday(
       AND a.oapp_status_id IN (${COUNTED_STATUS_LIST})
       AND NOT ${ATTENDED_ON_APPOINTMENT_DATE}
     ORDER BY tt.moph_ncd_code, a.nexttime, a.hn
-    LIMIT ${MISSED_LIST_LIMIT}
+    LIMIT ${NOT_ARRIVED_LIST_LIMIT}
   `.trim()
 }
 
