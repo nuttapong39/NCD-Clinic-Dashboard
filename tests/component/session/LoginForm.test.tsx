@@ -128,7 +128,7 @@ describe('LoginForm', () => {
       render(<LoginForm onConnect={mockOnConnect} error={error} isConnecting={false} />)
 
       expect(screen.getByText('การเชื่อมต่อล้มเหลว')).toBeInTheDocument()
-      expect(screen.getByText('Invalid session ID')).toBeInTheDocument()
+      expect(screen.getByText('เชื่อมต่อเซสชันไม่สำเร็จ กรุณาตรวจสอบรหัสเซสชันแล้วลองใหม่')).toBeInTheDocument()
     })
 
     it('MUST display rate limit error with retry info', () => {

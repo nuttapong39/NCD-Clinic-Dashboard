@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight, CircleAlert } from 'lucide-react'
 import { LoadingSpinner } from '@/components/layout/LoadingSpinner'
+import { toFriendlySessionError } from '@/utils/errorMessages'
 
 interface SessionIdFormProps {
   inputId: string
@@ -60,7 +61,7 @@ export function SessionIdForm({
           <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div className="min-w-0">
             {errorTitle && <p className="font-medium">{errorTitle}</p>}
-            <p className="break-words">{error.message}</p>
+            <p className="break-words">{toFriendlySessionError(error)}</p>
           </div>
         </div>
       )}

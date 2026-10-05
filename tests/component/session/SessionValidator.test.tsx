@@ -99,7 +99,7 @@ describe('SessionValidator', () => {
         </SessionValidator>
       )
 
-      expect(screen.getByText('Connection failed')).toBeInTheDocument()
+      expect(screen.getByText('เชื่อมต่อเซสชันไม่สำเร็จ กรุณาตรวจสอบรหัสเซสชันแล้วลองใหม่')).toBeInTheDocument()
     })
   })
 
@@ -130,7 +130,7 @@ describe('SessionValidator', () => {
         </SessionValidator>
       )
 
-      expect(screen.getByText('Session timeout')).toBeInTheDocument()
+      expect(screen.getByText('เชื่อมต่อเซสชันไม่สำเร็จ กรุณาตรวจสอบรหัสเซสชันแล้วลองใหม่')).toBeInTheDocument()
     })
   })
 

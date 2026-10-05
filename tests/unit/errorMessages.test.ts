@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toFriendlyError } from '@/utils/errorMessages'
+import { toFriendlyError, toFriendlySessionError } from '@/utils/errorMessages'
 
 describe('toFriendlyError', () => {
   it('MUST ask the user to reconnect when the session is unauthorized or expired', () => {
@@ -32,5 +32,33 @@ describe('toFriendlyError', () => {
       'ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
     )
     expect(toFriendlyError(null)).toBe('ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
+  })
+})
+
+describe('toFriendlySessionError', () => {
+  it('MUST explain an expired or unknown session and how to get a new one', () => {
+    const expected = 'รหัสเซสชันหมดอายุหรือไม่ถูกต้อง กรุณาเปิดแดชบอร์ดจากเมนูใน HOSxP อีกครั้ง หรือป้อนรหัสเซสชันใหม่'
+    expect(toFriendlySessionError(new Error('Session has expired. Please enter a new session ID.'))).toBe(expected)
+    expect(toFriendlySessionError(new Error('Session retrieval failed: Session expired or not found'))).toBe(expected)
+    expect(toFriendlySessionError(new Error('Failed to retrieve session (HTTP 404). Please verify your session ID and try again.'))).toBe(expected)
+  })
+
+  it('MUST explain network failures and timeouts while connecting', () => {
+    expect(toFriendlySessionError(new Error('Unable to connect to the session service.'))).toBe(
+      'เชื่อมต่อบริการเซสชันไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่',
+    )
+    expect(toFriendlySessionError(new Error('Session retrieval timed out after 30 seconds.'))).toBe(
+      'เชื่อมต่อบริการเซสชันนานเกินไป กรุณาลองใหม่อีกครั้ง',
+    )
+  })
+
+  it('MUST pass through messages that are already in Thai', () => {
+    expect(toFriendlySessionError(new Error('มีการร้องขอบ่อยเกินไป (HTTP 429)'))).toBe('มีการร้องขอบ่อยเกินไป (HTTP 429)')
+  })
+
+  it('MUST fall back to a generic connection message for unknown errors', () => {
+    expect(toFriendlySessionError(new Error('Invalid session ID'))).toBe(
+      'เชื่อมต่อเซสชันไม่สำเร็จ กรุณาตรวจสอบรหัสเซสชันแล้วลองใหม่',
+    )
   })
 })
