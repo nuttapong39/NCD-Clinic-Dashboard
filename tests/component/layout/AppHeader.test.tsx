@@ -69,7 +69,7 @@ describe('AppHeader', () => {
 
       render(<AppHeader />, { wrapper: BrowserRouter })
 
-      expect(screen.getByText('ระบบฝากครรภ์และการคลอด')).toBeInTheDocument()
+      expect(screen.getByText('คลินิกเบาหวาน · ความดัน')).toBeInTheDocument()
     })
 
     it('MUST render BMS Session subtitle', () => {

@@ -1,45 +1,12 @@
-// =============================================================================
-// BMS Session KPI Dashboard - App Layout
-// Top-level layout wrapper with refined spacing and background
-// =============================================================================
+import type { ReactNode } from 'react'
+import { AppHeader } from '@/components/layout/AppHeader'
 
-import type { ReactNode } from 'react';
-import { AppHeader } from '@/components/layout/AppHeader';
-
-interface AppLayoutProps {
-  children: ReactNode;
-}
-
-export function AppLayout({ children }: AppLayoutProps) {
+/** Transparent layout; the page gradient lives on <body> (UI-TEMPLATE §6). */
+export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="app-layout">
+    <div className="flex min-h-screen flex-col">
       <AppHeader />
-      <main className="app-main">{children}</main>
-      <style>{`
-        .app-layout {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-          background: hsl(var(--background));
-        }
-
-        .app-main {
-          flex: 1;
-          padding: 2rem 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-          .app-main {
-            padding: 2.5rem 2rem;
-          }
-        }
-
-        @media (min-width: 1280px) {
-          .app-main {
-            padding: 3rem 3rem;
-          }
-        }
-      `}</style>
+      <main className="flex-1">{children}</main>
     </div>
-  );
+  )
 }

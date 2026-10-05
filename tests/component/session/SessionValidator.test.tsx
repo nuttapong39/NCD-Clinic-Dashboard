@@ -57,10 +57,9 @@ describe('SessionValidator', () => {
 
       expect(screen.getByText('กำลังเชื่อมต่อ')).toBeInTheDocument()
       expect(screen.getByText('ยืนยันตัวตนกับ BMS Session API...')).toBeInTheDocument()
-      expect(screen.getByText('Initializing secure connection')).toBeInTheDocument()
     })
 
-    it('MUST show spinner animation during connecting', () => {
+    it('MUST announce the connecting progress as a status', () => {
       vi.mocked(useBmsSessionContext).mockReturnValue(mockContextValue({ sessionState: 'connecting' }))
 
       render(
@@ -69,9 +68,7 @@ describe('SessionValidator', () => {
         </SessionValidator>
       )
 
-      // Check for spinner rings
-      const spinnerRings = document.querySelectorAll('.spinner-ring')
-      expect(spinnerRings.length).toBe(3)
+      expect(screen.getByRole('status')).toHaveTextContent('กำลังเชื่อมต่อ')
     })
   })
 
