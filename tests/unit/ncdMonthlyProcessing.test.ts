@@ -288,19 +288,37 @@ describe('subjectYearSummary', () => {
     clinicRow({ month: '2024-12', clinicCode: '010', appointments: 30, came: 30 }),
   ]
 
-  it('MUST compare the elapsed months of this fiscal year with the same months last year', () => {
+  it('MUST total every month up to today including the month in progress', () => {
     const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2569, TODAY)
-    expect(summary.current).toMatchObject({ came: 50, missed: 15 })
-    expect(summary.previous).toMatchObject({ came: 50, missed: 10 })
-    expect(summary.cameChange).toBe(0)
+    expect(summary.toDate).toMatchObject({ came: 50, missed: 15 })
+    expect(summary.elapsed).toBe(2)
+    expect(summary.previousToDate).toMatchObject({ came: 50, missed: 10 })
     expect(summary.attendanceRate).toBeCloseTo(76.92, 2)
+  })
+
+  it('MUST compare only completed months with the same months last year when the current month is in progress', () => {
+    const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2569, TODAY)
+    expect(summary.completedMonths).toBe(1)
+    expect(summary.completed).toMatchObject({ came: 30, missed: 10 })
+    expect(summary.previousCompleted).toMatchObject({ came: 25, missed: 5 })
+    expect(summary.cameChange).toBe(20)
     expect(summary.previousAttendanceRate).toBeCloseTo(83.33, 2)
-    expect(summary.compareLabel).toBe('เทียบ ต.ค.–พ.ย. ของปีงบประมาณ 2568')
+    expect(summary.compareLabel).toBe('เทียบ ต.ค. ของปีงบประมาณ 2568')
+  })
+
+  it('MUST not compare when no month of the fiscal year is complete yet', () => {
+    const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2569, new Date(2025, 9, 6))
+    expect(summary.toDate.came).toBe(30)
+    expect(summary.completedMonths).toBe(0)
+    expect(summary.cameChange).toBeNull()
+    expect(summary.previousAttendanceRate).toBeNull()
+    expect(summary.compareLabel).toBe('ยังไม่มีเดือนที่ครบสำหรับเปรียบเทียบ')
   })
 
   it('MUST compare whole years for a fiscal year that has ended', () => {
     const summary = subjectYearSummary({ kind: 'disease', key: 'dm' }, clinicRows, [], 2568, TODAY)
-    expect(summary.current.came).toBe(80)
+    expect(summary.toDate.came).toBe(80)
+    expect(summary.completedMonths).toBe(12)
     expect(summary.cameChange).toBeNull()
     expect(summary.compareLabel).toBe('เทียบปีงบประมาณ 2567')
   })

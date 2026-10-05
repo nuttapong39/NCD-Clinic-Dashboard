@@ -2,9 +2,15 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatChange } from '@/utils/formatters'
 
+interface ChangeBadgeProps {
+  change: number | null
+  /** Shown instead of a pill when there is nothing to compare */
+  emptyLabel?: string
+}
+
 /** Percent change pill; null means no comparable base (UI-TEMPLATE §7.6). */
-export function ChangeBadge({ change }: { change: number | null }) {
-  if (change === null) return <span className="text-xs text-muted-foreground">ไม่มีข้อมูลปีงบก่อน</span>
+export function ChangeBadge({ change, emptyLabel = 'ไม่มีข้อมูลปีงบก่อน' }: ChangeBadgeProps) {
+  if (change === null) return <span className="text-xs text-muted-foreground">{emptyLabel}</span>
   const rounded = Math.round(change * 10) / 10
   const up = rounded > 0
   const flat = rounded === 0

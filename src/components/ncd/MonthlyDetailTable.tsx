@@ -62,17 +62,17 @@ export function MonthlyDetailTable({ current, previous, summary, attendanceOnly,
               </th>
               {attendanceOnly ? (
                 <>
-                  <Cell className="text-primary">{formatNumber(summary.current.came)}</Cell>
-                  <Cell className="rounded-r-xl">{formatNumber(summary.previous.came)}</Cell>
+                  <Cell className="text-primary">{formatNumber(summary.toDate.came)}</Cell>
+                  <Cell className="rounded-r-xl">{formatNumber(summary.previousToDate.came)}</Cell>
                 </>
               ) : (
                 <>
-                  <Cell>{formatNumber(summary.current.appointments)}</Cell>
-                  <Cell className="text-primary">{formatNumber(summary.current.came)}</Cell>
-                  <Cell>{formatNumber(summary.current.missed)}</Cell>
-                  <Cell>{formatNumber(summary.current.notArrivedToday + summary.current.upcoming)}</Cell>
+                  <Cell>{formatNumber(summary.toDate.appointments)}</Cell>
+                  <Cell className="text-primary">{formatNumber(summary.toDate.came)}</Cell>
+                  <Cell>{formatNumber(summary.toDate.missed)}</Cell>
+                  <Cell>{formatNumber(summary.toDate.notArrivedToday + summary.toDate.upcoming)}</Cell>
                   <Cell>{formatPercent(summary.attendanceRate)}</Cell>
-                  <Cell className="rounded-r-xl">{formatNumber(summary.previous.came)}</Cell>
+                  <Cell className="rounded-r-xl">{formatNumber(summary.previousToDate.came)}</Cell>
                 </>
               )}
             </tr>

@@ -33,14 +33,18 @@ export function DiseaseCards({ clinicRows, fiscalYear, asOf, onSelect }: Disease
           <KpiCard
             key={disease.key}
             label={`${disease.label} (${disease.shortLabel})`}
-            description={`นัด ${formatNumber(summary.current.appointments)} ครั้ง · ขาดนัด ${formatNumber(summary.current.missed)} ครั้ง`}
+            description={`นัด ${formatNumber(summary.toDate.appointments)} ครั้ง · ขาดนัด ${formatNumber(summary.toDate.missed)} ครั้ง`}
             icon={visual.icon}
             tileClassName={visual.tile}
             glowColor={visual.color}
             actionLabel="ดูแนวโน้มและรายละเอียดรายเดือน"
             onClick={() => onSelect(disease.key)}
             metrics={[
-              { label: 'มาตามนัด (ครั้ง)', value: formatNumber(summary.current.came), badge: <ChangeBadge change={summary.cameChange} /> },
+              {
+                label: 'มาตามนัด (ครั้ง)',
+                value: formatNumber(summary.toDate.came),
+                badge: <ChangeBadge change={summary.cameChange} emptyLabel={summary.completedMonths === 0 ? 'รอให้ครบเดือนแรก' : undefined} />,
+              },
               {
                 label: 'อัตรามาตามนัด',
                 value: formatPercent(summary.attendanceRate),

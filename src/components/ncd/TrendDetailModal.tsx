@@ -17,7 +17,7 @@ import { MonthlyDetailTable } from '@/components/ncd/MonthlyDetailTable'
 import { diseaseOf, rightsGroupOf } from '@/services/ncdCategories'
 import { detailSeries, subjectYearSummary } from '@/services/ncdMonthlyProcessing'
 import { fiscalYearRange } from '@/utils/fiscalYear'
-import { formatNumber, formatPercent, formatThaiDate } from '@/utils/formatters'
+import { NO_VALUE, formatNumber, formatPercent, formatThaiDate } from '@/utils/formatters'
 import type { ClinicSeriesGroup, DetailSubject, MonthlyClinicRow, MonthlyRightsRow } from '@/types/ncd'
 
 type Metric = 'came' | 'missed' | 'appointments'
@@ -105,6 +105,7 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
   const info = describeSubject(subject, groups)
   const series = useMemo(() => detailSeries(subject, clinicRows, rightsRows, fiscalYear, asOf), [subject, clinicRows, rightsRows, fiscalYear, asOf])
   const summary = useMemo(() => subjectYearSummary(subject, clinicRows, rightsRows, fiscalYear, asOf), [subject, clinicRows, rightsRows, fiscalYear, asOf])
+  const hasCompletedMonths = summary.completedMonths > 0
   const range = fiscalYearRange(fiscalYear)
   const points = series.current.map((point, index) => ({
     ...point,
@@ -149,9 +150,20 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
       </p>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="มาตามนัด (ปีนี้)" value={formatNumber(summary.current.came)} />
-        <Stat label={summary.compareLabel.replace('เทียบ', 'ช่วงเดียวกัน')} value={formatNumber(summary.previous.came)} />
-        <Stat label="เปลี่ยนแปลง" value={<ChangeBadge change={summary.cameChange} />} />
+        <Stat
+          label="มาตามนัด ถึงวันนี้"
+          value={formatNumber(summary.toDate.came)}
+          note={hasCompletedMonths ? `เดือนที่ครบ ${formatNumber(summary.completed.came)}` : 'ยังไม่มีเดือนที่ครบ'}
+        />
+        <Stat
+          label="ปีงบก่อน เดือนเดียวกัน"
+          value={hasCompletedMonths ? formatNumber(summary.previousCompleted.came) : NO_VALUE}
+          note={summary.compareLabel}
+        />
+        <Stat
+          label="เปลี่ยนแปลง (เดือนที่ครบ)"
+          value={<ChangeBadge change={summary.cameChange} emptyLabel={hasCompletedMonths ? undefined : 'รอให้ครบเดือนแรก'} />}
+        />
         {isRights ? (
           <Stat label="ขาดนัด / นัดล่วงหน้า" value="—" note="สิทธิมีเฉพาะนัดที่มาตามนัด" />
         ) : (

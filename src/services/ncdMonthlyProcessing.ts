@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { parseCount as count, parseNumber, parseText as text } from '@/utils/dataParser'
-import { compareLabel, elapsedMonths, fiscalMonthLabel, fiscalMonths, monthKeyOf } from '@/utils/fiscalYear'
+import { compareLabel, completedMonths, elapsedMonths, fiscalMonthLabel, fiscalMonths, monthKeyOf } from '@/utils/fiscalYear'
 import {
   RIGHTS_GROUPS,
   compareClinics,
@@ -313,16 +313,25 @@ export function monthlyCsvRows(rows: readonly MonthlyClinicRow[], fiscalYear: nu
 }
 
 export interface SubjectYearSummary {
-  current: AppointmentCounts
-  previous: AppointmentCounts
-  cameChange: number | null
-  attendanceRate: number | null
-  previousAttendanceRate: number | null
+  /** Every month up to today, including the month in progress */
+  toDate: AppointmentCounts
+  /** The same months of the previous fiscal year, for side-by-side monthly totals */
+  previousToDate: AppointmentCounts
   elapsed: number
+  attendanceRate: number | null
+  /** Completed months only, so a partial month is never compared with a whole one */
+  completed: AppointmentCounts
+  previousCompleted: AppointmentCounts
+  completedMonths: number
+  cameChange: number | null
+  previousAttendanceRate: number | null
   compareLabel: string
 }
 
-/** Year-to-date totals of a subject against the same months of the previous fiscal year. */
+/**
+ * Totals so far, and a comparison of completed months with the same months of the
+ * previous fiscal year (§9.2). The month in progress is left out of the comparison.
+ */
 export function subjectYearSummary(
   subject: DetailSubject,
   clinicRows: readonly MonthlyClinicRow[],
@@ -332,16 +341,21 @@ export function subjectYearSummary(
 ): SubjectYearSummary {
   const series = detailSeries(subject, clinicRows, rightsRows, fiscalYear, today)
   const elapsed = elapsedMonths(fiscalYear, today)
-  const current = summarizeSeries(series.current, elapsed)
-  const previous = summarizeSeries(series.previous, elapsed)
+  const months = completedMonths(fiscalYear, today)
+  const toDate = summarizeSeries(series.current, elapsed)
+  const completed = summarizeSeries(series.current, months)
+  const previousCompleted = summarizeSeries(series.previous, months)
   return {
-    current,
-    previous,
-    cameChange: percentChange(current.came, previous.came),
-    attendanceRate: attendanceRate(current),
-    previousAttendanceRate: attendanceRate(previous),
+    toDate,
+    previousToDate: summarizeSeries(series.previous, elapsed),
     elapsed,
-    compareLabel: compareLabel(fiscalYear, elapsed),
+    attendanceRate: attendanceRate(toDate),
+    completed,
+    previousCompleted,
+    completedMonths: months,
+    cameChange: months === 0 ? null : percentChange(completed.came, previousCompleted.came),
+    previousAttendanceRate: attendanceRate(previousCompleted),
+    compareLabel: compareLabel(fiscalYear, months),
   }
 }
 

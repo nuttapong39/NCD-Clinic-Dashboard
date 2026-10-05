@@ -9,6 +9,7 @@ import {
   comparisonRange,
   compareLabel,
   dateKeyOf,
+  completedMonths,
 } from '@/utils/fiscalYear'
 
 describe('fiscalYearOf', () => {
@@ -88,5 +89,26 @@ describe('dateKeyOf', () => {
   it('MUST use the local calendar date, not UTC, so early-morning exports keep today\'s date', () => {
     expect(dateKeyOf(new Date(2026, 9, 5, 2, 30))).toBe('2026-10-05')
     expect(dateKeyOf(new Date(2026, 0, 9, 23, 59))).toBe('2026-01-09')
+  })
+})
+
+describe('completedMonths', () => {
+  it('MUST leave out the month in progress', () => {
+    expect(completedMonths(2569, new Date(2025, 9, 6))).toBe(0)
+    expect(completedMonths(2569, new Date(2025, 10, 15))).toBe(1)
+  })
+
+  it('MUST count all 12 months of a fiscal year that has ended', () => {
+    expect(completedMonths(2568, new Date(2025, 9, 6))).toBe(12)
+  })
+
+  it('MUST return 0 for a fiscal year that has not started', () => {
+    expect(completedMonths(2570, new Date(2025, 9, 6))).toBe(0)
+  })
+})
+
+describe('compareLabel with no completed month', () => {
+  it('MUST say there is nothing to compare yet', () => {
+    expect(compareLabel(2570, 0)).toBe('ยังไม่มีเดือนที่ครบสำหรับเปรียบเทียบ')
   })
 })

@@ -77,14 +77,22 @@ export function monthKeyOf(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`
 }
 
-/** Caption under comparison numbers: whole previous year, or the same elapsed months (§9.2). */
+/** Caption under comparison numbers: whole previous year, the same months, or nothing to compare yet (§9.2). */
 export function compareLabel(fiscalYear: number, elapsed: number): string {
   const previous = fiscalYear - 1
-  if (elapsed <= 0 || elapsed >= MONTHS_PER_YEAR) return `เทียบปีงบประมาณ ${previous}`
+  if (elapsed <= 0) return 'ยังไม่มีเดือนที่ครบสำหรับเปรียบเทียบ'
+  if (elapsed >= MONTHS_PER_YEAR) return `เทียบปีงบประมาณ ${previous}`
   const months = fiscalMonths(fiscalYear)
   const monthName = (month: string) => THAI_SHORT_MONTHS[Number(month.slice(5, 7)) - 1]
   const span = elapsed === 1 ? monthName(months[0]) : `${monthName(months[0])}–${monthName(months[elapsed - 1])}`
   return `เทียบ ${span} ของปีงบประมาณ ${previous}`
+}
+
+/** Whole months of the fiscal year that ended before `today`; the month in progress is left out. */
+export function completedMonths(fiscalYear: number, today: Date): number {
+  const elapsed = elapsedMonths(fiscalYear, today)
+  const inProgress = fiscalYearOf(today) === fiscalYear
+  return inProgress ? Math.max(0, elapsed - 1) : elapsed
 }
 
 /** `YYYY-MM-DD` of a date in local time (not UTC). */
