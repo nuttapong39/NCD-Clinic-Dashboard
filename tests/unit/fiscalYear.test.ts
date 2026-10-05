@@ -8,6 +8,7 @@ import {
   elapsedMonths,
   comparisonRange,
   compareLabel,
+  dateKeyOf,
 } from '@/utils/fiscalYear'
 
 describe('fiscalYearOf', () => {
@@ -80,5 +81,12 @@ describe('compareLabel', () => {
   it('MUST name the matching months of the previous fiscal year while the year is in progress', () => {
     expect(compareLabel(2569, 3)).toBe('เทียบ ต.ค.–ธ.ค. ของปีงบประมาณ 2568')
     expect(compareLabel(2569, 1)).toBe('เทียบ ต.ค. ของปีงบประมาณ 2568')
+  })
+})
+
+describe('dateKeyOf', () => {
+  it('MUST use the local calendar date, not UTC, so early-morning exports keep today\'s date', () => {
+    expect(dateKeyOf(new Date(2026, 9, 5, 2, 30))).toBe('2026-10-05')
+    expect(dateKeyOf(new Date(2026, 0, 9, 23, 59))).toBe('2026-01-09')
   })
 })

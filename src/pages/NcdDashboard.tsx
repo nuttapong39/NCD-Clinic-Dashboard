@@ -12,9 +12,9 @@ import { TodaySummaryCards } from '@/components/ncd/TodaySummaryCards'
 import { NotArrivedTable } from '@/components/ncd/NotArrivedTable'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/StateViews'
-import { MONTHLY_CSV_COLUMNS, clinicSeriesGroups, listClinics, monthlyCsvRows } from '@/services/ncdMonthlyProcessing'
-import { downloadCsv, toCsv } from '@/utils/csv'
-import { fiscalMonths } from '@/utils/fiscalYear'
+import { clinicSeriesGroups, hasFiscalYearData, listClinics } from '@/services/ncdMonthlyProcessing'
+import { monthlyExport } from '@/services/ncdExports'
+import { downloadCsv } from '@/utils/csv'
 import { formatThaiDate, formatTime } from '@/utils/formatters'
 import type { DetailSubject } from '@/types/ncd'
 
@@ -31,11 +31,11 @@ export default function NcdDashboard() {
   const [detail, setDetail] = useState<DetailSubject | null>(null)
 
   const groups = useMemo(() => clinicSeriesGroups(listClinics(yearly.clinicRows)), [yearly.clinicRows])
-  const yearMonths = useMemo(() => new Set(fiscalMonths(fiscalYear)), [fiscalYear])
-  const hasYearData = yearly.clinicRows.some((row) => yearMonths.has(row.month))
+  const hasYearData = useMemo(() => hasFiscalYearData(yearly.clinicRows, fiscalYear), [yearly.clinicRows, fiscalYear])
 
   const exportMonthlyCsv = useCallback(() => {
-    downloadCsv(`ncd-clinic-fy${fiscalYear}.csv`, toCsv(MONTHLY_CSV_COLUMNS, monthlyCsvRows(yearly.clinicRows, fiscalYear)))
+    const file = monthlyExport(yearly.clinicRows, fiscalYear)
+    downloadCsv(file.filename, file.csv)
   }, [fiscalYear, yearly.clinicRows])
 
   const todayLabel = formatThaiDate(asOf)
@@ -83,7 +83,7 @@ export default function NcdDashboard() {
           selectedClinic={selectedClinic}
           onSelectClinic={setSelectedClinic}
           dateLabel={todayLabel}
-          fileDate={asOf.toISOString().slice(0, 10)}
+          listDate={asOf}
         />
       )}
 

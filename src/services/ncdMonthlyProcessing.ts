@@ -344,3 +344,7 @@ export function subjectYearSummary(
     compareLabel: compareLabel(fiscalYear, elapsed),
   }
 }
+
+export function hasFiscalYearData(rows: readonly MonthlyClinicRow[], fiscalYear: number): boolean {
+  return rows.some(inFiscalYear(fiscalYear))
+}

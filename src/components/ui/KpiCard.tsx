@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+const METRIC_GRID: Record<number, string> = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3' }
+
 export interface KpiMetric {
   label: string
   value: string
@@ -17,6 +19,7 @@ interface KpiCardProps {
   tileClassName: string
   /** Colour of the soft glow in the top-right corner */
   glowColor: string
+  /** Up to three metrics */
   metrics: readonly KpiMetric[]
   footnote?: ReactNode
   featured?: boolean
@@ -72,14 +75,14 @@ export function KpiCard({
         />
       </span>
 
-      <span className="mt-5 grid grid-cols-2 gap-3">
+      <span className={cn('mt-5 grid gap-3', METRIC_GRID[metrics.length] ?? 'grid-cols-2')}>
         {metrics.map((metric, index) => (
           <span key={metric.label} className="block min-w-0">
             <span className="block truncate text-xs text-muted-foreground">{metric.label}</span>
             <span
               className={cn(
                 'block font-semibold tabular-nums tracking-tight',
-                featured && index === 0 ? 'text-3xl' : 'text-2xl',
+                featured && index === 0 && metrics.length <= 2 ? 'text-3xl' : metrics.length >= 3 ? 'text-xl sm:text-2xl' : 'text-2xl',
               )}
             >
               {metric.value}

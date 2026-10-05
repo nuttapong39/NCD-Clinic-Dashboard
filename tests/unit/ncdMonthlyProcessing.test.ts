@@ -14,6 +14,7 @@ import {
   detailSeries,
   monthlyCsvRows,
   subjectYearSummary,
+  hasFiscalYearData,
 } from '@/services/ncdMonthlyProcessing'
 import type { MonthlyClinicRow, MonthlyRightsRow } from '@/types/ncd'
 
@@ -302,5 +303,13 @@ describe('subjectYearSummary', () => {
     expect(summary.current.came).toBe(80)
     expect(summary.cameChange).toBeNull()
     expect(summary.compareLabel).toBe('เทียบปีงบประมาณ 2567')
+  })
+})
+
+describe('hasFiscalYearData', () => {
+  it('MUST be true only when some row falls inside the selected fiscal year', () => {
+    const rows = [clinicRow({ month: '2024-10', appointments: 5 })]
+    expect(hasFiscalYearData(rows, 2568)).toBe(true)
+    expect(hasFiscalYearData(rows, 2569)).toBe(false)
   })
 })

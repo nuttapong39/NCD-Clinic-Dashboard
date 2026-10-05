@@ -125,3 +125,8 @@ export function notArrivedCsvRows(patients: readonly NotArrivedPatient[]): NotAr
     notes: patient.notes.join('; '),
   }))
 }
+
+/** Share of today's appointments that have arrived, or null without appointments. */
+export function arrivalShare(came: number, appointments: number): number | null {
+  return appointments === 0 ? null : (came / appointments) * 100
+}

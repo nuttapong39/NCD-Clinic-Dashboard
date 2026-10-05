@@ -5,8 +5,9 @@ import { ToolbarButton } from '@/components/ui/ToolbarButton'
 import { EmptyState } from '@/components/ui/StateViews'
 import { DISEASE_VISUALS } from '@/components/ncd/visuals'
 import { NOT_ARRIVED_LIST_LIMIT } from '@/services/ncdQueries'
-import { NOT_ARRIVED_CSV_COLUMNS, filterNotArrived, notArrivedCsvRows } from '@/services/ncdTodayProcessing'
-import { downloadCsv, toCsv } from '@/utils/csv'
+import { filterNotArrived } from '@/services/ncdTodayProcessing'
+import { notArrivedExport } from '@/services/ncdExports'
+import { downloadCsv } from '@/utils/csv'
 import { NO_VALUE, formatNumber, formatTime } from '@/utils/formatters'
 import type { ClinicToday, NotArrivedPatient } from '@/types/ncd'
 
@@ -17,10 +18,10 @@ interface NotArrivedTableProps {
   selectedClinic: string | null
   onSelectClinic: (clinicCode: string | null) => void
   dateLabel: string
-  fileDate: string
+  listDate: Date
 }
 
-export function NotArrivedTable({ patients, clinics, limitReached, selectedClinic, onSelectClinic, dateLabel, fileDate }: NotArrivedTableProps) {
+export function NotArrivedTable({ patients, clinics, limitReached, selectedClinic, onSelectClinic, dateLabel, listDate }: NotArrivedTableProps) {
   const [query, setQuery] = useState('')
   const visible = useMemo(
     () => filterNotArrived(patients, { query, clinicCode: selectedClinic }),
@@ -28,7 +29,8 @@ export function NotArrivedTable({ patients, clinics, limitReached, selectedClini
   )
 
   const exportCsv = () => {
-    downloadCsv(`ncd-not-arrived-${fileDate}.csv`, toCsv(NOT_ARRIVED_CSV_COLUMNS, notArrivedCsvRows(visible)))
+    const file = notArrivedExport(visible, listDate)
+    downloadCsv(file.filename, file.csv)
   }
 
   const clearFilters = () => {

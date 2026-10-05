@@ -1,4 +1,5 @@
 import { diseaseOf } from '@/services/ncdCategories'
+import { arrivalShare } from '@/services/ncdTodayProcessing'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { DISEASE_VISUALS, TOTAL_VISUAL } from '@/components/ncd/visuals'
 import { formatNumber, formatPercent } from '@/utils/formatters'
@@ -10,8 +11,9 @@ interface TodaySummaryCardsProps {
   onSelectClinic: (clinicCode: string | null) => void
 }
 
-function arrivedShare(came: number, appointments: number): string {
-  return appointments === 0 ? 'ยังไม่มีนัดวันนี้' : `มาแล้ว ${formatPercent((came / appointments) * 100)} ของนัด`
+function arrivalNote(came: number, appointments: number): string {
+  const share = arrivalShare(came, appointments)
+  return share === null ? 'ยังไม่มีนัดวันนี้' : `มาแล้ว ${formatPercent(share)} ของนัด`
 }
 
 /** Total card plus one card per clinic; clicking a clinic filters the not-arrived list. */
@@ -29,10 +31,11 @@ export function TodaySummaryCards({ summary, selectedClinic, onSelectClinic }: T
         actionLabel="แสดงรายชื่อทุกคลินิก"
         onClick={() => onSelectClinic(null)}
         metrics={[
-          { label: 'นัด (ครั้ง)', value: formatNumber(summary.appointments) },
+          { label: 'นัด', value: formatNumber(summary.appointments) },
+          { label: 'มาแล้ว', value: formatNumber(summary.came) },
           { label: 'ยังไม่มา', value: formatNumber(summary.notArrived) },
         ]}
-        footnote={arrivedShare(summary.came, summary.appointments)}
+        footnote={arrivalNote(summary.came, summary.appointments)}
       />
       {summary.clinics.map((clinic) => {
         const visual = DISEASE_VISUALS[clinic.diseaseKey]
@@ -48,10 +51,11 @@ export function TodaySummaryCards({ summary, selectedClinic, onSelectClinic }: T
             actionLabel="กรองรายชื่อผู้ป่วยที่ยังไม่มาของคลินิกนี้"
             onClick={() => onSelectClinic(selectedClinic === clinic.clinicCode ? null : clinic.clinicCode)}
             metrics={[
-              { label: 'นัด (ครั้ง)', value: formatNumber(clinic.appointments) },
+              { label: 'นัด', value: formatNumber(clinic.appointments) },
+              { label: 'มาแล้ว', value: formatNumber(clinic.came) },
               { label: 'ยังไม่มา', value: formatNumber(clinic.notArrived) },
             ]}
-            footnote={arrivedShare(clinic.came, clinic.appointments)}
+            footnote={arrivalNote(clinic.came, clinic.appointments)}
           />
         )
       })}

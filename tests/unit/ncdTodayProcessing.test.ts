@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { summarizeToday, groupNotArrivedByPatient, filterNotArrived, notArrivedCsvRows } from '@/services/ncdTodayProcessing'
+import { summarizeToday, groupNotArrivedByPatient, filterNotArrived, notArrivedCsvRows, arrivalShare } from '@/services/ncdTodayProcessing'
 
 describe('summarizeToday', () => {
   const rows = [
@@ -123,5 +123,15 @@ describe('notArrivedCsvRows', () => {
         notes: 'งดอาหาร; นำยามาด้วย',
       },
     ])
+  })
+})
+
+describe('arrivalShare', () => {
+  it('MUST return the percentage of today\'s appointments that have arrived', () => {
+    expect(arrivalShare(30, 40)).toBe(75)
+  })
+
+  it('MUST return null when there are no appointments today', () => {
+    expect(arrivalShare(0, 0)).toBeNull()
   })
 })

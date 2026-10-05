@@ -86,3 +86,8 @@ export function compareLabel(fiscalYear: number, elapsed: number): string {
   const span = elapsed === 1 ? monthName(months[0]) : `${monthName(months[0])}–${monthName(months[elapsed - 1])}`
   return `เทียบ ${span} ของปีงบประมาณ ${previous}`
 }
+
+/** `YYYY-MM-DD` of a date in local time (not UTC). */
+export function dateKeyOf(date: Date): string {
+  return `${monthKeyOf(date)}-${pad2(date.getDate())}`
+}
