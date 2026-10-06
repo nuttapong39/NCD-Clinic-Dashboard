@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type {
   Session,
   SessionState,
@@ -16,6 +16,8 @@ import {
   clearApiQueue,
   detectDatabaseType,
 } from '@/services/bmsSession'
+import { probeLocalApi, resolveHstsSafeApiUrl } from '@/services/bmsEndpoint'
+import { apiQueue } from '@/services/apiQueue'
 import {
   setSessionCookie,
   removeSessionCookie,
@@ -26,12 +28,15 @@ interface UseBmsSessionResult {
   sessionState: SessionState
   connectionConfig: ConnectionConfig | null
   error: Error | null
-  connectSession: (sessionId: string) => Promise<boolean>
+  connectSession: (sessionId: string, marketplaceToken?: string) => Promise<boolean>
   disconnectSession: () => void
   setDisconnected: () => void
   refreshSession: () => Promise<boolean>
   executeQuery: (sql: string, params?: SqlParams) => Promise<SqlApiResponse>
 }
+
+const LOCAL_MAX_CONCURRENT = 5
+const REMOTE_MAX_CONCURRENT = 1
 
 export function useBmsSession(): UseBmsSessionResult {
   const [session, setSession] = useState<Session | null>(null)
@@ -39,11 +44,13 @@ export function useBmsSession(): UseBmsSessionResult {
   const [connectionConfig, setConnectionConfig] = useState<ConnectionConfig | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [lastSessionId, setLastSessionId] = useState<string | null>(null)
+  const marketplaceTokenRef = useRef<string | undefined>(undefined)
 
-  const connectSession = useCallback(async (sessionId: string): Promise<boolean> => {
+  const connectSession = useCallback(async (sessionId: string, marketplaceToken?: string): Promise<boolean> => {
     setSessionState('connecting')
     setError(null)
     setLastSessionId(sessionId)
+    marketplaceTokenRef.current = marketplaceToken
 
     try {
       const response = await retrieveBmsSession(sessionId)
@@ -56,11 +63,22 @@ export function useBmsSession(): UseBmsSessionResult {
         )
       }
 
-      const config = extractConnectionConfig(response)
+      // Endpoint choice follows telemed-analysis-v2: http on the session port,
+      // an IP instead of the HSTS-preloaded hostname, and the local HOSxP
+      // gateway whenever it answers (see services/bmsEndpoint.ts).
+      const extracted = extractConnectionConfig(response)
+      const remoteConfig: ConnectionConfig = {
+        ...extracted,
+        apiUrl: (await resolveHstsSafeApiUrl(extracted.apiUrl)) ?? extracted.apiUrl,
+      }
+      const { config, isLocal } = await probeLocalApi(remoteConfig, marketplaceToken)
+      // The tunnel serves one request at a time per session; the local gateway can take several
+      apiQueue.setMaxConcurrent(isLocal ? LOCAL_MAX_CONCURRENT : REMOTE_MAX_CONCURRENT)
+
       const userInfo = extractUserInfo(response)
       const systemInfo = extractSystemInfo(response)
 
-      const dbType: DatabaseType = await detectDatabaseType(config)
+      const dbType: DatabaseType = await detectDatabaseType(config, marketplaceToken)
       const updatedConfig: ConnectionConfig = { ...config, databaseType: dbType }
 
       const newSession: Session = {
@@ -73,6 +91,7 @@ export function useBmsSession(): UseBmsSessionResult {
         connectedAt: new Date(),
         userInfo,
         systemInfo,
+        isLocalApi: isLocal,
       }
 
       setSession(newSession)
@@ -109,7 +128,7 @@ export function useBmsSession(): UseBmsSessionResult {
     }
 
     try {
-      const result = await executeSqlViaApiQueued(sql, connectionConfig, params)
+      const result = await executeSqlViaApiQueued(sql, connectionConfig, params, marketplaceTokenRef.current)
 
       if (result.MessageCode === 500 || result.MessageCode === 501) {
         setSessionState('expired')

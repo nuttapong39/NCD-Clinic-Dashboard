@@ -260,6 +260,7 @@ describe('useBmsSession', () => {
     expect(executeSqlViaApiQueued).toHaveBeenCalledWith(
       'SELECT COUNT(*) as total FROM patient',
       expect.objectContaining({ apiUrl: 'https://bms.hospital.com' }),
+      undefined,
       undefined
     )
     expect(queryResult).toEqual(sqlResponse)
@@ -282,7 +283,8 @@ describe('useBmsSession', () => {
     expect(executeSqlViaApiQueued).toHaveBeenCalledWith(
       'SELECT :start_date',
       expect.objectContaining({ apiUrl: 'https://bms.hospital.com' }),
-      params
+      params,
+      undefined
     )
   })
 

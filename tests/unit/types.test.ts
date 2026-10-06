@@ -90,6 +90,7 @@ describe('Session', () => {
       databaseName: 'hospital_db',
       expirySeconds: 3600,
       connectedAt: new Date('2026-01-01T00:00:00Z'),
+      isLocalApi: false,
       userInfo: {
         name: 'Dr. Smith',
         position: 'Physician',

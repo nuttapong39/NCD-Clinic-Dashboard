@@ -133,4 +133,6 @@ export interface Session {
   connectedAt: Date;
   userInfo: UserInfo;
   systemInfo: SystemInfo;
+  /** True when queries go to the local HOSxP gateway instead of the tunnel */
+  isLocalApi: boolean;
 }

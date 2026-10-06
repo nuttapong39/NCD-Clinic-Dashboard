@@ -88,7 +88,7 @@ function rowsFor(sql: string): unknown[] {
 async function fakeFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const url = String(input)
   if (url.includes('PasteJSON')) return json(sessionResponse)
-  if (url === `${API_URL}/api/sql`) {
+  if (url.startsWith(`${API_URL}/api/sql`)) {
     const call = JSON.parse(String(init?.body)) as SqlCall
     sqlCalls.push(call)
     return sqlOverride(call) ?? sqlResult(rowsFor(call.sql))

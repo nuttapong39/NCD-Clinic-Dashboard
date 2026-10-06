@@ -21,6 +21,11 @@ vi.mock('@/utils/sessionStorage', () => ({
   getSessionCookie: vi.fn(),
   setSessionCookie: vi.fn(),
   removeSessionCookie: vi.fn(),
+  getSessionFromUrl: vi.fn(() => null),
+  hasUrlMarketplaceToken: vi.fn(() => false),
+  handleUrlMarketplaceToken: vi.fn(() => null),
+  getMarketplaceToken: vi.fn(() => null),
+  removeMarketplaceToken: vi.fn(),
 }))
 
 import { useBmsSession } from '@/hooks/useBmsSession'
@@ -38,6 +43,7 @@ const mockSession: Session = {
   databaseName: 'hospital_db',
   expirySeconds: 36000,
   connectedAt: new Date(),
+  isLocalApi: false,
   userInfo: {
     name: 'Dr. Smith',
     position: 'Physician',
@@ -150,7 +156,7 @@ describe('BmsSessionProvider / useBmsSessionContext', () => {
     )
 
     await waitFor(() => {
-      expect(connectSession).toHaveBeenCalledWith('url-session-id-123')
+      expect(connectSession).toHaveBeenCalledWith('url-session-id-123', undefined)
     })
   })
 
@@ -170,7 +176,7 @@ describe('BmsSessionProvider / useBmsSessionContext', () => {
     )
 
     await waitFor(() => {
-      expect(connectSession).toHaveBeenCalledWith('cookie-session-id-456')
+      expect(connectSession).toHaveBeenCalledWith('cookie-session-id-456', undefined)
     })
   })
 
@@ -190,7 +196,7 @@ describe('BmsSessionProvider / useBmsSessionContext', () => {
 
     await waitFor(() => {
       expect(connectSession).toHaveBeenCalledTimes(1)
-      expect(connectSession).toHaveBeenCalledWith('url-session-id')
+      expect(connectSession).toHaveBeenCalledWith('url-session-id', undefined)
     })
   })
 

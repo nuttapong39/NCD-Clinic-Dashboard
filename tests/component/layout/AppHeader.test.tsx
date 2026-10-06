@@ -21,6 +21,7 @@ const mockSession: Session = {
   databaseName: 'test_db',
   expirySeconds: 36000,
   connectedAt: new Date(),
+  isLocalApi: false,
   userInfo: {
     name: 'Dr. สมชาย ทดสอบ',
     position: 'แพทย์',

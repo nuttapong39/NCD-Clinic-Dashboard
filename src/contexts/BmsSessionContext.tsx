@@ -1,6 +1,14 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react'
 import { useBmsSession } from '@/hooks/useBmsSession'
-import { handleUrlSession, getSessionCookie } from '@/utils/sessionStorage'
+import {
+  getMarketplaceToken,
+  getSessionCookie,
+  getSessionFromUrl,
+  handleUrlMarketplaceToken,
+  handleUrlSession,
+  hasUrlMarketplaceToken,
+  removeMarketplaceToken,
+} from '@/utils/sessionStorage'
 
 type BmsSessionContextType = ReturnType<typeof useBmsSession>
 
@@ -8,6 +16,22 @@ export const BmsSessionContext = createContext<BmsSessionContextType | null>(nul
 
 interface BmsSessionProviderProps {
   children: ReactNode
+}
+
+/**
+ * The marketplace token belongs to the session it was launched with:
+ * - token in the URL → use it (and remember it)
+ * - new session in the URL without a token → forget the old token, which the
+ *   server would reject for the new session
+ * - reconnecting from the cookie → reuse the remembered token
+ */
+function resolveMarketplaceToken(): string | undefined {
+  if (hasUrlMarketplaceToken()) return handleUrlMarketplaceToken() ?? undefined
+  if (getSessionFromUrl()) {
+    removeMarketplaceToken()
+    return undefined
+  }
+  return getMarketplaceToken() ?? undefined
 }
 
 export function BmsSessionProvider({ children }: BmsSessionProviderProps) {
@@ -20,15 +44,17 @@ export function BmsSessionProvider({ children }: BmsSessionProviderProps) {
     hasConnected.current = true
 
     const initializeSession = async () => {
+      const marketplaceToken = resolveMarketplaceToken()
+
       const urlSessionId = handleUrlSession()
       if (urlSessionId) {
-        await session.connectSession(urlSessionId)
+        await session.connectSession(urlSessionId, marketplaceToken)
         return
       }
 
       const cookieSessionId = getSessionCookie()
       if (cookieSessionId) {
-        await session.connectSession(cookieSessionId)
+        await session.connectSession(cookieSessionId, marketplaceToken)
         return
       }
 
