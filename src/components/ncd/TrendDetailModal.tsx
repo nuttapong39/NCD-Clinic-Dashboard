@@ -129,7 +129,7 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
         title={`${metricLabel} ${point.label}`}
         rows={[
           { label: `ปีงบ ${fiscalYear}`, value: point.value, color: info.color, emphasis: true },
-          { label: `ปีงบ ${fiscalYear - 1}`, value: point.previous, color: PREVIOUS_YEAR_COLOR, dashed: true },
+          ...(showPrevious ? [{ label: `ปีงบ ${fiscalYear - 1}`, value: point.previous, color: PREVIOUS_YEAR_COLOR, dashed: true }] : []),
         ]}
       />
     )
@@ -163,7 +163,7 @@ function DetailBody({ subject, onClose, clinicRows, rightsRows, groups, fiscalYe
         />
         <Stat
           label="ปีงบก่อน เดือนเดียวกัน"
-          value={hasCompletedMonths ? formatNumber(summary.previousCompleted.came) : NO_VALUE}
+          value={summary.cameChange === null ? NO_VALUE : formatNumber(summary.previousCompleted.came)}
           note={summary.compareLabel}
         />
         <Stat

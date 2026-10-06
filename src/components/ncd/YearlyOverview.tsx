@@ -4,6 +4,7 @@ import { SectionCard } from '@/components/ui/SectionCard'
 import { EmptyState } from '@/components/ui/StateViews'
 import { DiseaseCards } from '@/components/ncd/DiseaseCards'
 import { StackedTrendChart, type StackSeries } from '@/components/ncd/StackedTrendChart'
+import { hasAnyValue } from '@/components/ncd/chartConfig'
 import { ClinicShareDonut } from '@/components/ncd/ClinicShareDonut'
 import { RIGHTS_COLORS, clinicSeriesColor } from '@/components/ncd/visuals'
 import { RIGHTS_GROUPS } from '@/services/ncdCategories'
@@ -21,6 +22,7 @@ interface YearlyOverviewProps {
 
 export function YearlyOverview({ clinicRows, rightsRows, groups, fiscalYear, asOf, onOpenDetail }: YearlyOverviewProps) {
   const clinicPoints = useMemo(() => buildClinicStackSeries(clinicRows, fiscalYear, asOf, groups), [clinicRows, fiscalYear, asOf, groups])
+  const comparedWith = hasAnyValue(clinicPoints, 'previousTotal') ? ` เทียบนัดรวมของปีงบ ${fiscalYear - 1}` : ''
   const shares = useMemo(() => clinicShare(clinicRows, fiscalYear, groups), [clinicRows, fiscalYear, groups])
   const rightsPoints = useMemo(() => buildRightsSeries(rightsRows, fiscalYear, asOf), [rightsRows, fiscalYear, asOf])
   const hasRights = rightsPoints.some((point) => point.total > 0)
@@ -45,7 +47,7 @@ export function YearlyOverview({ clinicRows, rightsRows, groups, fiscalYear, asO
 
       <SectionCard
         title="แนวโน้มนัดรายเดือนแยกตามคลินิก"
-        description={`จำนวนนัดของแต่ละคลินิก เทียบนัดรวมของปีงบ ${fiscalYear - 1} · คลิกแท่งเพื่อดูรายละเอียดของคลินิกนั้น`}
+        description={`จำนวนนัดของแต่ละคลินิก${comparedWith} · คลิกแท่งเพื่อดูรายละเอียดของคลินิกนั้น`}
         icon={<BarChart3 className="h-5 w-5" />}
       >
         <StackedTrendChart
