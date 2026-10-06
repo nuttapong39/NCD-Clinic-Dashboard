@@ -222,7 +222,22 @@ describe('T016 - SQL Query Execution Contract (/api/sql)', () => {
 
       await executeSqlViaApi('SELECT 1', config)
 
-      expect(capturedUrl).toBe('https://test.hosxp.net/api/sql')
+      expect(capturedUrl.startsWith('https://test.hosxp.net/api/sql?random=')).toBe(true)
+    })
+
+    it('MUST send the marketplace token in the body when one is provided', async () => {
+      let capturedBody: Record<string, unknown> = {}
+
+      server.use(
+        http.post('https://test.hosxp.net/api/sql', async ({ request }) => {
+          capturedBody = (await request.json()) as Record<string, unknown>
+          return HttpResponse.json(successSqlResponse)
+        }),
+      )
+
+      await executeSqlViaApi('SELECT 1', config, undefined, 'mkt-token')
+
+      expect(capturedBody['marketplace-token']).toBe('mkt-token')
     })
   })
 

@@ -103,6 +103,8 @@ export interface SqlApiRequest {
   sql: string;
   app: string;
   params?: SqlParams;
+  /** Passed when the app is launched from HOSxP; without it the server masks personal data */
+  'marketplace-token'?: string;
 }
 
 // ---------------------------------------------------------------------------

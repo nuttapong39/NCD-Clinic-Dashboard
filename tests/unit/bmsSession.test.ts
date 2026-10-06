@@ -169,6 +169,12 @@ describe('retrieveBmsSession', () => {
 // ---------------------------------------------------------------------------
 
 describe('extractConnectionConfig', () => {
+  it('MUST use plain http on the session port when the session names a non-443 port', () => {
+    const response = createSampleResponse();
+    if (response.result?.user_info) response.result.user_info.bms_session_port = 30247;
+    expect(extractConnectionConfig(response).apiUrl).toBe('http://bms.hospital.com:30247');
+  });
+
   it('MUST extract apiUrl and bearerToken from user_info', () => {
     const response = createSampleResponse();
     const config = extractConnectionConfig(response);
@@ -340,7 +346,7 @@ describe('executeSqlViaApi', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [calledUrl, calledOptions] = fetchMock.mock.calls[0];
 
-    expect(calledUrl).toBe('https://bms.hospital.com/api/sql');
+    expect(String(calledUrl).startsWith('https://bms.hospital.com/api/sql?random=')).toBe(true);
     expect(calledOptions.method).toBe('POST');
     expect(calledOptions.headers).toEqual({
       Authorization: 'Bearer bearer-token-abc',

@@ -15,6 +15,7 @@ import type {
 
 import { queryBuilder } from '@/services/queryBuilder';
 import { apiQueue } from '@/services/apiQueue';
+import { resolveApiUrl, withRandomParam } from '@/services/bmsEndpoint';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -108,7 +109,7 @@ export async function retrieveBmsSession(sessionId: string): Promise<BmsSessionR
 export function extractConnectionConfig(response: BmsSessionResponse): ConnectionConfig {
   const userInfo = response.result?.user_info;
 
-  const apiUrl = userInfo?.bms_url;
+  const apiUrl = resolveApiUrl(userInfo?.bms_url, userInfo?.bms_session_port);
   if (!apiUrl) {
     throw new Error(
       'BMS API URL is missing from the session response. ' +
@@ -178,18 +179,24 @@ export async function executeSqlViaApi(
   sql: string,
   config: ConnectionConfig,
   params?: SqlParams,
+  marketplaceToken?: string,
 ): Promise<SqlApiResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${config.apiUrl}/api/sql`, {
+    const response = await fetch(withRandomParam(`${config.apiUrl}/api/sql`), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.bearerToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ sql, app: config.appIdentifier, ...(params && { params }) }),
+      body: JSON.stringify({
+        sql,
+        app: config.appIdentifier,
+        ...(params && { params }),
+        ...(marketplaceToken && { 'marketplace-token': marketplaceToken }),
+      }),
       signal: controller.signal,
     });
 
@@ -262,9 +269,9 @@ export async function executeSqlViaApi(
  * Falls back to `'mysql'` when detection fails (e.g. network error or
  * unexpected response shape).
  */
-export async function detectDatabaseType(config: ConnectionConfig): Promise<DatabaseType> {
+export async function detectDatabaseType(config: ConnectionConfig, marketplaceToken?: string): Promise<DatabaseType> {
   try {
-    const response = await executeSqlViaApiQueued('SELECT VERSION() as version', config);
+    const response = await executeSqlViaApiQueued('SELECT VERSION() as version', config, undefined, marketplaceToken);
 
     const versionRow = response.data?.[0];
     if (!versionRow) {
@@ -318,10 +325,11 @@ export async function executeSqlViaApiQueued(
   sql: string,
   config: ConnectionConfig,
   params?: SqlParams,
+  marketplaceToken?: string,
 ): Promise<SqlApiResponse> {
   const requestId = generateRequestId(sql, config, params);
 
-  return apiQueue.enqueue(requestId, () => executeSqlViaApi(sql, config, params));
+  return apiQueue.enqueue(requestId, () => executeSqlViaApi(sql, config, params, marketplaceToken));
 }
 
 /**
