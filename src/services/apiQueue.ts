@@ -3,8 +3,8 @@
 // Manages concurrent API calls with rate limiting, deduplication, and retry
 // =============================================================================
 
-/** Maximum concurrent API calls */
-const MAX_CONCURRENT_CALLS = 3;
+/** Default concurrent API calls (changed per connection by setMaxConcurrent) */
+const DEFAULT_MAX_CONCURRENT_CALLS = 3;
 
 /** Maximum retry attempts for rate-limited requests */
 const MAX_RETRY_ATTEMPTS = 3;
@@ -44,6 +44,7 @@ class ApiRequestQueue {
   private completed = 0;
   private failed = 0;
   private pendingRequests = new Map<string, Promise<unknown>>();
+  private maxConcurrent = DEFAULT_MAX_CONCURRENT_CALLS;
 
   /**
    * Calculate backoff delay with exponential increase and jitter
@@ -64,10 +65,22 @@ class ApiRequestQueue {
   }
 
   /**
+   * Change the concurrency limit: the remote tunnel serves one request at a
+   * time per session, the local HOSxP gateway can take several.
+   */
+  setMaxConcurrent(limit: number): void {
+    if (!Number.isFinite(limit) || limit < 1) return;
+    this.maxConcurrent = Math.floor(limit);
+    while (this.active < this.maxConcurrent && this.queue.length > 0) {
+      this.processQueue();
+    }
+  }
+
+  /**
    * Process the next request in the queue
    */
   private processQueue(): void {
-    if (this.active >= MAX_CONCURRENT_CALLS || this.queue.length === 0) {
+    if (this.active >= this.maxConcurrent || this.queue.length === 0) {
       return;
     }
 

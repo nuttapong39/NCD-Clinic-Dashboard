@@ -13,6 +13,10 @@ import {
   handleUrlSession,
   BMS_SESSION_COOKIE_NAME,
   COOKIE_EXPIRY_DAYS,
+  MARKETPLACE_TOKEN_KEY,
+  getMarketplaceToken,
+  removeMarketplaceToken,
+  handleUrlMarketplaceToken,
 } from '@/utils/sessionStorage';
 
 // ---------------------------------------------------------------------------
@@ -311,5 +315,42 @@ describe('sessionStorage - Constants', () => {
 
   it('COOKIE_EXPIRY_DAYS is 7', () => {
     expect(COOKIE_EXPIRY_DAYS).toBe(7);
+  });
+});
+
+describe('marketplace token', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('MUST read the token from the marketplace_token URL parameter, store it and strip it from the URL', () => {
+    setupLocationMock('https://dashboard.test/?bms-session-id=ABC&marketplace_token=mkt-1');
+    expect(handleUrlMarketplaceToken()).toBe('mkt-1');
+    expect(getMarketplaceToken()).toBe('mkt-1');
+    expect(window.history.replaceState).toHaveBeenCalledWith(window.history.state, '', 'https://dashboard.test/?bms-session-id=ABC');
+  });
+
+  it('MUST also accept the marketplace-token spelling', () => {
+    setupLocationMock('https://dashboard.test/?marketplace-token=mkt-2');
+    expect(handleUrlMarketplaceToken()).toBe('mkt-2');
+    expect(window.history.replaceState).toHaveBeenCalledWith(window.history.state, '', 'https://dashboard.test/');
+  });
+
+  it('MUST fall back to the stored token when the URL has none', () => {
+    setupLocationMock('https://dashboard.test/');
+    localStorage.setItem(MARKETPLACE_TOKEN_KEY, 'stored');
+    expect(handleUrlMarketplaceToken()).toBe('stored');
+    expect(window.history.replaceState).not.toHaveBeenCalled();
+  });
+
+  it('MUST forget the stored token when removed', () => {
+    localStorage.setItem(MARKETPLACE_TOKEN_KEY, 'stored');
+    removeMarketplaceToken();
+    expect(getMarketplaceToken()).toBeNull();
   });
 });

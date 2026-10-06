@@ -104,3 +104,49 @@ export function handleUrlSession(): string | null {
 
   return getSessionCookie();
 }
+
+// ---------------------------------------------------------------------------
+// Marketplace token (localStorage)
+// ---------------------------------------------------------------------------
+
+/**
+ * Passed in the URL when the dashboard is launched from HOSxP. Without it the
+ * BMS server masks personal data, so it is kept for the rest of the session.
+ */
+export const MARKETPLACE_TOKEN_KEY = 'marketplace_token';
+
+export function setMarketplaceToken(token: string): void {
+  localStorage.setItem(MARKETPLACE_TOKEN_KEY, token);
+}
+
+export function getMarketplaceToken(): string | null {
+  return localStorage.getItem(MARKETPLACE_TOKEN_KEY);
+}
+
+export function removeMarketplaceToken(): void {
+  localStorage.removeItem(MARKETPLACE_TOKEN_KEY);
+}
+
+/** True when the URL carries a marketplace token (either spelling launchers use). */
+export function hasUrlMarketplaceToken(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return params.has('marketplace_token') || params.has('marketplace-token');
+}
+
+/**
+ * Takes the marketplace token from the URL (`marketplace_token` or
+ * `marketplace-token`), stores it and strips it from the address bar.
+ * Falls back to the stored token when the URL has none.
+ */
+export function handleUrlMarketplaceToken(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get('marketplace_token') ?? params.get('marketplace-token');
+  if (!urlToken) return getMarketplaceToken();
+
+  setMarketplaceToken(urlToken);
+  const url = new URL(window.location.href);
+  url.searchParams.delete('marketplace_token');
+  url.searchParams.delete('marketplace-token');
+  window.history.replaceState(window.history.state, '', url.toString());
+  return urlToken;
+}

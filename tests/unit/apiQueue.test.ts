@@ -117,3 +117,52 @@ describe('ApiRequestQueue', () => {
     });
   });
 });
+
+describe('ApiRequestQueue.setMaxConcurrent', () => {
+  afterEach(() => {
+    apiQueue.setMaxConcurrent(3);
+    apiQueue.clear();
+  });
+
+  it('MUST run one request at a time when limited to 1 (remote tunnel)', async () => {
+    apiQueue.setMaxConcurrent(1);
+    let releaseFirst!: () => void;
+    const started: string[] = [];
+    const first = apiQueue.enqueue('first', () => {
+      started.push('first');
+      return new Promise<string>((resolve) => { releaseFirst = () => resolve('a'); });
+    });
+    const second = apiQueue.enqueue('second', async () => { started.push('second'); return 'b'; });
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(started).toEqual(['first']);
+
+    releaseFirst();
+    await expect(Promise.all([first, second])).resolves.toEqual(['a', 'b']);
+    expect(started).toEqual(['first', 'second']);
+  });
+
+  it('MUST start waiting requests right away when the limit is raised', async () => {
+    apiQueue.setMaxConcurrent(1);
+    let releaseFirst!: () => void;
+    const started: string[] = [];
+    const first = apiQueue.enqueue('first', () => {
+      started.push('first');
+      return new Promise<string>((resolve) => { releaseFirst = () => resolve('a'); });
+    });
+    const second = apiQueue.enqueue('second', async () => { started.push('second'); return 'b'; });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    apiQueue.setMaxConcurrent(5);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(started).toEqual(['first', 'second']);
+
+    releaseFirst();
+    await Promise.all([first, second]);
+  });
+
+  it('MUST ignore invalid limits', () => {
+    expect(() => apiQueue.setMaxConcurrent(0)).not.toThrow();
+    expect(() => apiQueue.setMaxConcurrent(Number.NaN)).not.toThrow();
+  });
+});
